@@ -17,6 +17,7 @@ use craft\helpers\StringHelper;
 use craft\web\View;
 
 
+use jorisnoo\bunnystream\models\BunnyStreamFieldAttributes;
 use yii\base\InvalidConfigException;
 use yii\db\Schema;
 
@@ -82,8 +83,10 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
     {
         return [
             'bunnyStreamVideoGuid' => Schema::TYPE_STRING,
-//            'bunnyStreamPlaybackId' => Schema::TYPE_STRING,
-//            'bunnyStreamMetaData' => Schema::TYPE_TEXT,
+            'bunnyStreamVideoStatus' => Schema::TYPE_INTEGER,
+            'width' => Schema::TYPE_INTEGER,
+            'height' => Schema::TYPE_INTEGER,
+            'bunnyStreamMetaData' => Schema::TYPE_TEXT,
         ];
     }
 
@@ -95,17 +98,17 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
     /**
      * @throws InvalidConfigException
      */
-//    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
-//    {
-//        if ($value instanceof MuxMateFieldAttributes) {
-//            return $value;
-//        }
-//        return Craft::createObject([
-//            'class' => MuxMateFieldAttributes::class,
-//            ...($value ?? []),
-//        ]);
-//    }
-//
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
+    {
+        if ($value instanceof BunnyStreamFieldAttributes) {
+            return $value;
+        }
+        return Craft::createObject([
+            'class' => BunnyStreamFieldAttributes::class,
+            ...($value ?? []),
+        ]);
+    }
+
     protected function inputHtml(mixed $value, ElementInterface $element = null): string
     {
         if (!$element instanceof Asset || $element->kind !== Asset::KIND_VIDEO) {

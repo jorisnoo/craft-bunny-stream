@@ -26,9 +26,9 @@
         <div data-mux-fields>
             {{ forms.copyTextField({
                 id: "bunny-stream-video-guid-#{asset.id}",
-                label: 'Bunny Stream Video Guid'|t('_bunny-stream'),
-                value: asset.muxAssetId,
-                class: ['code', not asset.muxAssetId ? 'disabled']|filter
+                label: 'Bunny Stream Video ID'|t('_bunny-stream'),
+                value: asset.bunnyStreamVideoGuid,
+                class: ['code', not asset.bunnyStreamVideoGuid ? 'disabled']|filter
             }) }}
 
 {#            {{ forms.copyTextField({#}
@@ -50,28 +50,28 @@
 
     </div>
 
-{#        <hr />#}
+        <hr />
 
-{#        <div data-mux-data="{{ asset.id }}">#}
+        <div data-mux-data="{{ asset.id }}">
 
-{#            {% if asset.muxAssetId %}#}
+            {% if asset.bunnyStreamVideoGuid %}
 
-{#                <h3>{{ 'Mux Asset Data'|t('_bunny-stream') }}</h3>#}
+                <h3>{{ 'Mux Asset Data'|t('_bunny-stream') }}</h3>
 
-{#                <div style="max-width:100%;overflow:auto;">#}
-{#                    {% if asset.muxData %}#}
-{#                        <pre>{{ asset.muxData|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</pre>#}
-{#                    {% else %}#}
-{#                        {{ warning('No Mux data available'|t('_bunny-stream')) }}#}
-{#                    {% endif %}#}
-{#                </div>#}
+                <div style="max-width:100%;overflow:auto;">
+                    {% if asset.bunnyStreamData %}
+                        <pre>{{ asset.bunnyStreamData|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</pre>
+                    {% else %}
+                        {{ warning('No Mux data available'|t('_bunny-stream')) }}
+                    {% endif %}
+                </div>
 
-{#                <hr />#}
+                <hr />
 
-{#            {% endif %}#}
+            {% endif %}
 
 {#            <div class="flex">#}
-{#                {% if asset.muxAssetId %}#}
+{#                {% if asset.bunnyStreamVideoGuid %}#}
 {#                    {{ forms.button({#}
 {#                        label: 'Update Mux data'|t('_bunny-stream'),#}
 {#                        spinner: true,#}
@@ -104,7 +104,7 @@
 
 {#        </div>#}
 
-{#    </div>#}
+    </div>
 
 {#    {% js %}#}
 

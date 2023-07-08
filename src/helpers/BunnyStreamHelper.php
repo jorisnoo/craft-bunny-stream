@@ -2,8 +2,10 @@
 
 namespace jorisnoo\bunnystream\helpers;
 
+use craft\base\Element;
 use craft\base\FieldInterface;
 use craft\elements\Asset;
+use craft\helpers\Json;
 use Illuminate\Support\Collection;
 use jorisnoo\bunnystream\fields\BunnyStreamField;
 use jorisnoo\bunnystream\models\BunnyStreamFieldAttributes;
@@ -17,6 +19,11 @@ class BunnyStreamHelper
     public static function getBunnyStreamVideoGuid(?Asset $asset): ?string
     {
         return static::getBunnyStreamFieldAttributes($asset)?->bunnyStreamVideoGuid;
+    }
+
+    public static function getBunnyStreamData(?Asset $asset): ?array
+    {
+        return static::getBunnyStreamFieldAttributes($asset)?->bunnyStreamMetaData;
     }
 
     /**
@@ -42,9 +49,6 @@ class BunnyStreamHelper
         }
 
         if (!$bunnyStreamVideo) {
-            $assetUrl = static::_getAssetUrl($asset);
-            $bunnyStreamVideo = BunnyStreamApiHelper::createVideo($assetUrl);
-
             // Create a new Bunny Stream Video
             try {
                 $assetUrl = static::_getAssetUrl($asset);
@@ -59,17 +63,91 @@ class BunnyStreamHelper
             }
         }
 
-//        if (!$bunnyStreamVideo) {
-//            // Still no Mux asset; make sure the data on the Craft asset is wiped out and bail
-//            static::deleteMuxAttributesForAsset($asset);
-//            return false;
-//        }
-//
-//        return static::saveMuxAttributesToAsset($asset, [
-//            'muxAssetId' => $muxAsset->getId(),
-//            'muxPlaybackId' => $muxAsset->getPlaybackIds()[0]['id'] ?? null,
-//            'muxMetaData' => (array)$muxAsset->jsonSerialize(),
-//        ]);
+        if (!$bunnyStreamVideo) {
+            // Still no Mux asset; make sure the data on the Craft asset is wiped out and bail
+            static::deleteMuxAttributesForAsset($asset);
+            return false;
+        }
+
+        return static::saveBunnyStreamAttributesToAsset($asset, [
+            'bunnyStreamVideoGuid' => $bunnyStreamVideo['id'],
+            'bunnyStreamVideoStatus' => $bunnyStreamVideo['status'],
+            'height' => $bunnyStreamVideo['height'],
+            'width' => $bunnyStreamVideo['width'],
+            'bunnyStreamMetaData' => (array)$bunnyStreamVideo,
+        ]);
+    }
+
+    /**
+     * @param Asset $asset
+     * @param array $attributes
+     * @return bool
+     */
+    public static function saveBunnyStreamAttributesToAsset(Asset $asset, array $attributes): bool
+    {
+        if (!static::_setBunnyStreamFieldAttributes($asset, $attributes)) {
+            return false;
+        }
+
+        $asset->setScenario(Element::SCENARIO_ESSENTIALS);
+        $asset->resaving = true;
+
+        try {
+            $success = \Craft::$app->getElements()->saveElement($asset, false);
+        } catch (\Throwable $e) {
+            \Craft::error($e, __METHOD__);
+            return false;
+        }
+
+        if (!$success) {
+            \Craft::error("Unable to save Mux attributes to asset: " . Json::encode($asset->getErrors()), __METHOD__);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param Asset|null $asset
+     * @param bool $alsoDeleteBunnyStreamVideo
+     * @return bool
+     */
+    public static function deleteMuxAttributesForAsset(?Asset $asset, bool $alsoDeleteBunnyStreamVideo = true): bool
+    {
+        if (!$asset) {
+            return false;
+        }
+
+        $bunnyStreamVideoGuid = static::getBunnyStreamFieldAttributes($asset)?->bunnyStreamVideoGuid;
+
+        if (!$bunnyStreamVideoGuid) {
+            return false;
+        }
+
+        static::_setBunnyStreamFieldAttributes($asset, null);
+
+        $asset->setScenario(Element::SCENARIO_ESSENTIALS);
+        $asset->resaving = true;
+
+        try {
+            $success = \Craft::$app->getElements()->saveElement($asset, false);
+        } catch (\Throwable $e) {
+            \Craft::error($e, __METHOD__);
+            return false;
+        }
+
+        if (!$success) {
+            \Craft::error("Unable to delete Mux attributes for asset: " . Json::encode($asset->getErrors()));
+            return false;
+        }
+
+        if ($alsoDeleteBunnyStreamVideo) {
+            try {
+                BunnyStreamApiHelper::deleteVideo($bunnyStreamVideoGuid);
+            } catch (\Throwable) {
+                // Don't really care.
+            }
+        }
 
         return true;
     }

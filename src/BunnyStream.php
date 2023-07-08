@@ -7,12 +7,14 @@ use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\elements\Asset;
+use craft\events\DefineBehaviorsEvent;
 use craft\events\DefineRulesEvent;
 use craft\events\ModelEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\log\MonologTarget;
 use craft\models\FieldLayout;
 use craft\services\Fields;
+use jorisnoo\bunnystream\behaviors\BunnyStreamAssetBehavior;
 use jorisnoo\bunnystream\fields\BunnyStreamField;
 use jorisnoo\bunnystream\helpers\BunnyStreamHelper;
 use jorisnoo\bunnystream\models\Settings;
@@ -68,6 +70,17 @@ class BunnyStream extends Plugin
         Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, function(RegisterComponentTypesEvent $event) {
             $event->types[] = BunnyStreamField::class;
         });
+
+        // Register asset behavior
+        Event::on(
+            Asset::class,
+            Model::EVENT_DEFINE_BEHAVIORS,
+            static function(DefineBehaviorsEvent $event) {
+                $event->behaviors['bunnyStreamAssetBehavior'] = [
+                    'class' => BunnyStreamAssetBehavior::class,
+                ];
+            }
+        );
 
         // Create Bunny Stream Videos when videos are saved
         Event::on(

@@ -2,30 +2,61 @@
 
 namespace jorisnoo\bunnystream\helpers;
 
-use Corbpie\BunnyCdn\BunnyAPIStream;
 use jorisnoo\bunnystream\BunnyStream;
+use ToshY\BunnyNet\Client\BunnyClient;
+use ToshY\BunnyNet\StreamAPI;
 
 class BunnyStreamApiHelper
 {
 
-    public static function getVideo(string $bunnyStreamVideoGuid)
+    public static function getVideo(string $videoId)
     {
-        return static::getApiClient()->getVideo($bunnyStreamVideoGuid);
+        ['streamApi' => $streamApi, 'settings' => $settings] = static::getApiClient();
+
+        $result = $streamApi->getVideo(
+            libraryId: $settings['libraryId'],
+            videoId: $videoId,
+        );
+
+        return $result;
+    }
+
+    public static function deleteVideo(string $videoId)
+    {
+        ['streamApi' => $streamApi, 'settings' => $settings] = static::getApiClient();
+
+        $result = $streamApi->deleteVideo(
+            libraryId: $settings['libraryId'],
+            videoId: $videoId,
+        );
+
+        return $result;
     }
 
     public static function createVideo(string $inputUrl)
     {
-        $apiClient = static::getApiClient();
+        ['streamApi' => $streamApi, 'settings' => $settings] = static::getApiClient();
 
-        $result = $apiClient->fetchVideo($inputUrl);
+        $result = $streamApi->fetchVideo(
+            libraryId: $settings['libraryId'],
+            body: [
+                'url' => $inputUrl,
+            ],
+            query: [
+                ...$settings['collection'] ? ['collectionId' => $settings['collection']] : [],
+            ],
+        );
 
-        dd($result);
+        $video = $result->getContents();
 
-        return $result->getData();
+        if ($video['statusCode'] !== 200) {
+            throw new \RuntimeException("No Bunny Stream video");
+        }
 
+        return self::getVideo($video['id']);
     }
 
-    public static function getApiClient(): BunnyAPIStream
+    public static function getApiClient()
     {
         $settings = BunnyStream::getInstance()->getSettings();
         $bunnyStreamAccessKey = $settings?->bunnyStreamAccessKey;
@@ -40,14 +71,21 @@ class BunnyStreamApiHelper
             throw new \RuntimeException("No Bunny Stream library ID");
         }
 
-        $bunny = new BunnyAPIStream();
-        $bunny->apiKey($bunnyStreamAccessKey);
-        $bunny->setStreamLibraryId($bunnyStreamLibraryId);
+        $bunnyClient = new BunnyClient(
+            \Craft::createGuzzleClient(),
+        );
 
-        if($bunnyStreamCollectionGuid){
-            $bunny->setStreamCollectionGuid($bunnyStreamCollectionGuid);
-        }
+        $streamApi = new StreamAPI(
+            apiKey: $bunnyStreamAccessKey,
+            client: $bunnyClient
+        );
 
-        return $bunny;
+        return [
+            'streamApi' => $streamApi,
+            'settings' => [
+                'libraryId' => $bunnyStreamLibraryId,
+                'collection' => $bunnyStreamCollectionGuid,
+            ]
+        ];
     }
 }
