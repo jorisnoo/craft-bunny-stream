@@ -16,7 +16,7 @@ class BunnyStreamHelper
     /** @var BunnyStreamField[] */
     private static array $_bunnyStreamFieldsByVolume = [];
 
-    public static function getBunnyStreamVideoGuid(?Asset $asset): ?string
+    public static function getBunnyStreamVideoId(?Asset $asset): ?string
     {
         return static::getBunnyStreamFieldAttributes($asset)?->bunnyStreamVideoGuid;
     }
@@ -36,7 +36,7 @@ class BunnyStreamHelper
             return false;
         }
 
-        $bunnyStreamVideoGuid = static::getBunnyStreamVideoGuid($asset);
+        $bunnyStreamVideoGuid = static::getBunnyStreamVideoId($asset);
         $bunnyStreamVideo = null;
 
         if ($bunnyStreamVideoGuid) {
@@ -70,10 +70,7 @@ class BunnyStreamHelper
         }
 
         return static::saveBunnyStreamAttributesToAsset($asset, [
-            'bunnyStreamVideoGuid' => $bunnyStreamVideo['id'],
-            'bunnyStreamVideoStatus' => $bunnyStreamVideo['status'],
-            'height' => $bunnyStreamVideo['height'],
-            'width' => $bunnyStreamVideo['width'],
+            'bunnyStreamVideoId' => $bunnyStreamVideo['id'],
             'bunnyStreamMetaData' => (array)$bunnyStreamVideo,
         ]);
     }

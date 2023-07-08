@@ -61,7 +61,7 @@ class BunnyStreamApiHelper
         $settings = BunnyStream::getInstance()->getSettings();
         $bunnyStreamAccessKey = $settings?->bunnyStreamAccessKey;
         $bunnyStreamLibraryId = $settings?->bunnyStreamLibraryId;
-        $bunnyStreamCollectionGuid = $settings?->bunnyStreamCollectionGuid;
+        $bunnyStreamCollectionGuid = $settings?->bunnyStreamCollectionId;
 
         if (!$bunnyStreamAccessKey) {
             throw new \RuntimeException("No Bunny Stream access key");

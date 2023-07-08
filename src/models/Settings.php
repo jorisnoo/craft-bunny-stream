@@ -11,6 +11,9 @@ class Settings extends Model
 
     public ?string $bunnyStreamLibraryId = null;
 
-    public ?string $bunnyStreamCollectionGuid = null;
+    public ?string $bunnyStreamPullZoneUrl = null;
+
+    public ?string $bunnyStreamCollectionId = null;
+
 
 }

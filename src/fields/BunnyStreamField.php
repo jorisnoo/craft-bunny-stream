@@ -82,10 +82,7 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
     public function getContentColumnType(): array|string
     {
         return [
-            'bunnyStreamVideoGuid' => Schema::TYPE_STRING,
-            'bunnyStreamVideoStatus' => Schema::TYPE_INTEGER,
-            'width' => Schema::TYPE_INTEGER,
-            'height' => Schema::TYPE_INTEGER,
+            'bunnyStreamVideoId' => Schema::TYPE_STRING,
             'bunnyStreamMetaData' => Schema::TYPE_TEXT,
         ];
     }

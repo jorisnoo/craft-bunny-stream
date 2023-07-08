@@ -25,10 +25,10 @@
 
         <div data-mux-fields>
             {{ forms.copyTextField({
-                id: "bunny-stream-video-guid-#{asset.id}",
+                id: "bunny-stream-video-id-#{asset.id}",
                 label: 'Bunny Stream Video ID'|t('_bunny-stream'),
-                value: asset.bunnyStreamVideoGuid,
-                class: ['code', not asset.bunnyStreamVideoGuid ? 'disabled']|filter
+                value: asset.bunnyStreamVideoId,
+                class: ['code', not asset.bunnyStreamVideoId ? 'disabled']|filter
             }) }}
 
 {#            {{ forms.copyTextField({#}
@@ -54,15 +54,15 @@
 
         <div data-mux-data="{{ asset.id }}">
 
-            {% if asset.bunnyStreamVideoGuid %}
+            {% if asset.bunnyStreamVideoId %}
 
-                <h3>{{ 'Mux Asset Data'|t('_bunny-stream') }}</h3>
+                <h3>{{ 'Bunny Stream Asset Data'|t('_bunny-stream') }}</h3>
 
                 <div style="max-width:100%;overflow:auto;">
                     {% if asset.bunnyStreamData %}
                         <pre>{{ asset.bunnyStreamData|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</pre>
                     {% else %}
-                        {{ warning('No Mux data available'|t('_bunny-stream')) }}
+                        {{ warning('No Bunny Stream data available'|t('_bunny-stream')) }}
                     {% endif %}
                 </div>
 
@@ -71,7 +71,7 @@
             {% endif %}
 
 {#            <div class="flex">#}
-{#                {% if asset.bunnyStreamVideoGuid %}#}
+{#                {% if asset.bunnyStreamVideoId %}#}
 {#                    {{ forms.button({#}
 {#                        label: 'Update Mux data'|t('_bunny-stream'),#}
 {#                        spinner: true,#}

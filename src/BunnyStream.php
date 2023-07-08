@@ -20,7 +20,6 @@ use jorisnoo\bunnystream\helpers\BunnyStreamHelper;
 use jorisnoo\bunnystream\models\Settings;
 use Monolog\Formatter\LineFormatter;
 use Psr\Log\LogLevel;
-use vaersaagod\muxmate\helpers\MuxMateHelper;
 use yii\base\Event;
 
 /**
@@ -56,10 +55,6 @@ class BunnyStream extends Plugin
         });
     }
 
-    /**
-     * @return \craft\base\Model|null
-     * @throws \yii\base\InvalidConfigException
-     */
     protected function createSettingsModel(): ?\craft\base\Model
     {
         return new Settings();
@@ -92,7 +87,7 @@ class BunnyStream extends Plugin
                 if (
                     $asset->resaving ||
                     $asset->kind !== Asset::KIND_VIDEO ||
-                    BunnyStreamHelper::getBunnyStreamVideoGuid($asset)
+                    BunnyStreamHelper::getBunnyStreamVideoId($asset)
                 ) {
                     return;
                 }

@@ -18,13 +18,13 @@ use yii\base\Behavior;
 class BunnyStreamAssetBehavior extends Behavior
 {
 
-    public function getBunnyStreamVideoGuid(): ?string
+    public function getBunnyStreamVideoId(): ?string
     {
         if (!$this->owner instanceof Asset) {
             return null;
         }
 
-        return BunnyStreamHelper::getBunnyStreamVideoGuid($this->owner);
+        return BunnyStreamHelper::getBunnyStreamVideoId($this->owner);
     }
 
 
@@ -36,10 +36,10 @@ class BunnyStreamAssetBehavior extends Behavior
         return BunnyStreamHelper::getBunnyStreamData($this->owner);
     }
 
-    public function isBunnyStreamVideoReady(): bool
-    {
-//        return $this->getMuxStatus() === 'ready';
-    }
+//    public function isBunnyStreamVideoReady(): bool
+//    {
+////        return $this->getMuxStatus() === 'ready';
+//    }
 
 //    /**
 //     * @return bool
