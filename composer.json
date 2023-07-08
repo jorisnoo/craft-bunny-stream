@@ -3,9 +3,12 @@
     "type": "craft-plugin",
     "require": {
         "php": ">=8.0.2",
+        "corbpie/bunny-cdn-api": "^1.9",
         "craftcms/cms": "^4.4.0"
     },
     "require-dev": {
+        "roave/security-advisories": "dev-latest"
+        ,
         "craftcms/ecs": "dev-main"
     },
     "autoload": {
@@ -36,4 +39,3 @@
         }
     }
 }
-

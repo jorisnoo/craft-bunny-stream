@@ -16,7 +16,6 @@ use craft\helpers\Html;
 use craft\helpers\StringHelper;
 use craft\web\View;
 
-use vaersaagod\muxmate\models\MuxMateFieldAttributes;
 
 use yii\base\InvalidConfigException;
 use yii\db\Schema;
@@ -25,7 +24,7 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
 {
     public static function displayName(): string
     {
-        return Craft::t('_bunnystream', 'Bunny Stream');
+        return Craft::t('_bunny-stream', 'Bunny Stream');
     }
 
     public static function valueType(): string
@@ -41,16 +40,16 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
     public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
     {
 //        if (!$value instanceof MuxMateFieldAttributes || !$value->muxAssetId) {
-//            $label = \Craft::t('_bunnystream', 'Video does not have a Bunny Stream asset');
+//            $label = \Craft::t('_bunny-stream', 'Video does not have a Bunny Stream asset');
 //            $content = '❌';
 //        } else {
 //            $muxData = $value->muxMetaData ?? [];
 //            $muxStatus = $muxData['status'] ?? null;
 //            if ($muxStatus !== 'ready') {
-//                $label = \Craft::t('_bunnystream', 'Bunny Stream video is being processed. Stay tuned!');
+//                $label = \Craft::t('_bunny-stream', 'Bunny Stream video is being processed. Stay tuned!');
 //                $content = '⏳';
 //            } else {
-//                $label = \Craft::t('_bunnystream', 'Bunny Stream video is ready to play!');
+//                $label = \Craft::t('_bunny-stream', 'Bunny Stream video is ready to play!');
 //                $content = '👍';
 //            }
 //        }
@@ -107,15 +106,17 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
 //        ]);
 //    }
 //
-//    protected function inputHtml(mixed $value, ElementInterface $element = null): string
-//    {
-//        if (!$element instanceof Asset || $element->kind !== Asset::KIND_VIDEO) {
-//            $warningTip = new Tip([
-//                'style' => Tip::STYLE_WARNING,
-//                'tip' => Craft::t('_bunnystream', 'The MuxMate field is only designed to work on video assets.'),
-//            ]);
-//            return $warningTip->formHtml();
-//        }
+    protected function inputHtml(mixed $value, ElementInterface $element = null): string
+    {
+        if (!$element instanceof Asset || $element->kind !== Asset::KIND_VIDEO) {
+            $warningTip = new Tip([
+                'style' => Tip::STYLE_WARNING,
+                'tip' => Craft::t('_bunny-stream', 'The Bunny Stream field is only designed to work on video assets.'),
+            ]);
+            return $warningTip->formHtml();
+        }
+
+
 //        $id = Html::id($this->handle);
 //        $namespacedId = Craft::$app->getView()->namespaceInputId($id);
 //        $css = <<< CSS
@@ -127,12 +128,13 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
 //            }
 //            CSS;
 //        Craft::$app->getView()->registerCss($css);
-//        return \Craft::$app->getView()->renderTemplate(
-//            '_bunnystream/_components/muxmate-field-input.twig',
-//            ['asset' => $element],
-//            View::TEMPLATE_MODE_CP
-//        );
-//    }
+
+        return \Craft::$app->getView()->renderTemplate(
+            '_bunny-stream/_components/bunnystream-field-input.twig',
+            ['asset' => $element],
+            View::TEMPLATE_MODE_CP
+        );
+    }
 
     public function getElementValidationRules(): array
     {

@@ -1,6 +1,6 @@
 <?php
 
-namespace vaersaagod\muxmate\models;
+namespace jorisnoo\bunnystream\models;
 
 use craft\base\Model;
 
