@@ -1,0 +1,39 @@
+{
+    "name": "jorisnoo/craft-bunny-stream",
+    "type": "craft-plugin",
+    "require": {
+        "php": ">=8.0.2",
+        "craftcms/cms": "^4.4.0"
+    },
+    "require-dev": {
+        "craftcms/ecs": "dev-main"
+    },
+    "autoload": {
+        "psr-4": {
+            "jorisnoo\\bunnystream\\": "src/"
+        }
+    },
+    "extra": {
+        "handle": "_bunny-stream",
+        "name": "Bunny Stream",
+        "developer": "Joris Noordermeer",
+        "documentationUrl": "",
+        "class": "jorisnoo\\bunnystream\\BunnyStream"
+    },
+    "scripts": {
+        "check-cs": "ecs check --ansi",
+        "fix-cs": "ecs check --ansi --fix",
+        "phpstan": "phpstan --memory-limit=1G"
+    },
+    "config": {
+        "sort-packages": true,
+        "platform": {
+            "php": "8.0.2"
+        },
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "craftcms/plugin-installer": true
+        }
+    }
+}
+
