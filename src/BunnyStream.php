@@ -4,6 +4,10 @@ namespace jorisnoo\bunnystream;
 
 use Craft;
 use craft\base\Plugin;
+use craft\events\RegisterComponentTypesEvent;
+use craft\services\Fields;
+use jorisnoo\bunnystream\fields\BunnyStreamField;
+use yii\base\Event;
 
 /**
  * Bunny Stream plugin
@@ -36,7 +40,8 @@ class BunnyStream extends Plugin
 
     private function attachEventHandlers(): void
     {
-        // Register event handlers here ...
-        // (see https://craftcms.com/docs/4.x/extend/events.html to get started)
+        Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, function(RegisterComponentTypesEvent $event) {
+            $event->types[] = BunnyStreamField::class;
+        });
     }
 }
