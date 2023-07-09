@@ -60,13 +60,7 @@ class WebhookController extends Controller
             return true;
         }
 
-        $bunnyStreamMetaData = BunnyStreamHelper::getBunnyStreamData($videoId);
-
-        $bunnyStreamMetaData['status'] = $webhookData['Status'] ?? $bunnyStreamMetaData['status'];
-
-        BunnyStreamHelper::saveBunnyStreamAttributesToAsset($asset, [
-            'bunnyStreamMetaData' => $bunnyStreamMetaData,
-        ]);
+        BunnyStreamHelper::updateBunnyStreamData($asset);
 
         return true;
     }

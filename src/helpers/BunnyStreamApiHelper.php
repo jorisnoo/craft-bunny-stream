@@ -13,20 +13,24 @@ class BunnyStreamApiHelper
     {
         ['streamApi' => $streamApi, 'settings' => $settings] = static::getApiClient();
 
-        return $streamApi->getVideo(
+        $result = $streamApi->getVideo(
             libraryId: $settings['libraryId'],
             videoId: $videoId,
         );
+
+        return $result->getContents();
     }
 
     public static function deleteVideo(string $videoId)
     {
         ['streamApi' => $streamApi, 'settings' => $settings] = static::getApiClient();
 
-        return $streamApi->deleteVideo(
+        $result = $streamApi->deleteVideo(
             libraryId: $settings['libraryId'],
             videoId: $videoId,
         );
+
+        return $result->getContents();
     }
 
     public static function createVideo(string $inputUrl)

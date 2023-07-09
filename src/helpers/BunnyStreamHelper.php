@@ -26,10 +26,6 @@ class BunnyStreamHelper
         return static::getBunnyStreamFieldAttributes($asset)?->bunnyStreamMetaData;
     }
 
-    /**
-     * @param Asset|null $asset
-     * @return bool
-     */
     public static function updateOrCreateBunnyStreamVideo(?Asset $asset): bool
     {
         if (!$asset) {
@@ -70,7 +66,21 @@ class BunnyStreamHelper
         }
 
         return static::saveBunnyStreamAttributesToAsset($asset, [
-            'bunnyStreamVideoId' => $bunnyStreamVideo->id,
+            'bunnyStreamVideoId' => $bunnyStreamVideo['guid'],
+            'bunnyStreamMetaData' => (array)$bunnyStreamVideo,
+        ]);
+    }
+
+    public static function updateBunnyStreamData(?Asset $asset) {
+        if (!$asset) {
+            return false;
+        }
+
+        $bunnyStreamVideoId = static::getBunnyStreamVideoId($asset);
+        $bunnyStreamVideo = BunnyStreamApiHelper::getVideo($bunnyStreamVideoId);
+
+        return static::saveBunnyStreamAttributesToAsset($asset, [
+            'bunnyStreamVideoId' => $bunnyStreamVideoId,
             'bunnyStreamMetaData' => (array)$bunnyStreamVideo,
         ]);
     }
