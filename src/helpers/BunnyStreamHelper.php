@@ -7,6 +7,7 @@ use craft\base\FieldInterface;
 use craft\elements\Asset;
 use craft\helpers\Json;
 use Illuminate\Support\Collection;
+use jorisnoo\bunnystream\BunnyStream;
 use jorisnoo\bunnystream\fields\BunnyStreamField;
 use jorisnoo\bunnystream\models\BunnyStreamFieldAttributes;
 use vaersaagod\muxmate\helpers\MuxApiHelper;
@@ -24,6 +25,38 @@ class BunnyStreamHelper
     public static function getBunnyStreamData(?Asset $asset): ?array
     {
         return static::getBunnyStreamFieldAttributes($asset)?->bunnyStreamMetaData;
+    }
+
+    public static function getBunnyStreamStatus(?Asset $asset): ?string
+    {
+        $data = static::getBunnyStreamData($asset);
+
+        if (!$data) {
+            return null;
+        }
+
+        // Bunny Stream Statuses:
+        return match ((int)$data['status']) {
+            1 => 'queued',
+            2 => 'processing',
+            3 => 'encoding',
+            4 => 'finished',
+            5 => 'resolution_finished',
+            6 => 'failed',
+            default => null,
+        };
+    }
+
+    public static function getHlsUrl($bunnyStreamVideoId): string
+    {
+        $settings = BunnyStream::getInstance()->getSettings();
+        $bunnyStreamCDNHostname = $settings?->bunnyStreamCDNHostname;
+
+        if (!$bunnyStreamCDNHostname) {
+            throw new \RuntimeException("No Bunny Stream access key");
+        }
+
+        return "https://{$bunnyStreamCDNHostname}/{$$bunnyStreamVideoId}/playlist.m3u8";
     }
 
     public static function updateOrCreateBunnyStreamVideo(?Asset $asset): bool
@@ -85,11 +118,6 @@ class BunnyStreamHelper
         ]);
     }
 
-    /**
-     * @param Asset $asset
-     * @param array $attributes
-     * @return bool
-     */
     public static function saveBunnyStreamAttributesToAsset(Asset $asset, array $attributes): bool
     {
         if (!static::_setBunnyStreamFieldAttributes($asset, $attributes)) {
@@ -114,11 +142,6 @@ class BunnyStreamHelper
         return true;
     }
 
-    /**
-     * @param Asset|null $asset
-     * @param bool $alsoDeleteBunnyStreamVideo
-     * @return bool
-     */
     public static function deleteBunnyStreamAttributesForAsset(?Asset $asset, bool $alsoDeleteBunnyStreamVideo = true): bool
     {
         if (!$asset) {
