@@ -7,12 +7,7 @@ use craft\helpers\Template;
 use craft\web\View;
 
 use jorisnoo\bunnystream\helpers\BunnyStreamHelper;
-use Twig\Markup;
 
-use vaersaagod\muxmate\helpers\MuxApiHelper;
-use vaersaagod\muxmate\helpers\MuxMateHelper;
-
-use vaersaagod\muxmate\MuxMate;
 use yii\base\Behavior;
 
 class BunnyStreamAssetBehavior extends Behavior
@@ -27,7 +22,6 @@ class BunnyStreamAssetBehavior extends Behavior
         return BunnyStreamHelper::getBunnyStreamVideoId($this->owner);
     }
 
-
     public function getBunnyStreamData(): ?array
     {
         if (!$this->owner instanceof Asset) {
@@ -35,6 +29,8 @@ class BunnyStreamAssetBehavior extends Behavior
         }
         return BunnyStreamHelper::getBunnyStreamData($this->owner);
     }
+
+
 
 //    public function isBunnyStreamVideoReady(): bool
 //    {
@@ -70,38 +66,7 @@ class BunnyStreamAssetBehavior extends Behavior
 //        }
 //        return MuxApiHelper::getStreamUrl($playbackId);
 //    }
-//
-//    /**
-//     * @param array $params
-//     * @return string|Markup
-//     */
-//    public function getMuxVideo(array $params = []): string|Markup
-//    {
-//        if (
-//            !$this->owner instanceof Asset ||
-//            !MuxMateHelper::getMuxPlaybackId($this->owner)
-//        ) {
-//            return '';
-//        }
-//        try {
-//            $settings = MuxMate::getInstance()->getSettings();
-//            $muxVideoUrl = $settings->muxVideoUrl;
-//            $inline = $params['inline'] ?? null;
-//            $lazyload = $params['lazyload'] ?? $settings->lazyloadMuxVideo;
-//            $nonce = $settings->scriptSrcNonce;
-//            $html = Template::raw(\Craft::$app->getView()->renderTemplate('_muxmate/_mux-video.twig', [
-//                'video' => $this->owner,
-//                'muxVideoUrl' => $muxVideoUrl,
-//                'inline' => $inline,
-//                'lazyload' => $lazyload,
-//                'nonce' => $nonce,
-//            ], View::TEMPLATE_MODE_CP));
-//        } catch (\Throwable $e) {
-//            \Craft::error($e, __METHOD__);
-//            return '';
-//        }
-//        return $html;
-//    }
+
 //
 //    /**
 //     * @param string $quality
@@ -142,30 +107,6 @@ class BunnyStreamAssetBehavior extends Behavior
 //    }
 //
 //    /**
-//     * @return array|null
-//     */
-//    public function getStaticRenditions(): ?array
-//    {
-//        if (!$this->owner instanceof Asset) {
-//            return null;
-//        }
-//        $muxData = MuxMateHelper::getMuxData($this->owner) ?? [];
-//        $staticRenditions = $muxData['static_renditions'] ?? [];
-//        if (($staticRenditions['status'] ?? null) !== 'ready') {
-//            return null;
-//        }
-//        $staticRenditionsByQuality = [];
-//        foreach ($staticRenditions['files'] ?? [] as $staticRendition) {
-//            $quality = explode('.', $staticRendition['name'])[0];
-//            $staticRenditionsByQuality[$quality] = $staticRendition;
-//        }
-//        if (empty($staticRenditionsByQuality)) {
-//            return null;
-//        }
-//        return $staticRenditionsByQuality;
-//    }
-//
-//    /**
 //     * See https://docs.mux.com/guides/video/get-images-from-a-video for params
 //     *
 //     * @param array $params
@@ -199,19 +140,6 @@ class BunnyStreamAssetBehavior extends Behavior
 //            return null;
 //        }
 //        return MuxApiHelper::getGifUrl(MuxMateHelper::getMuxPlaybackId($this->owner), $params);
-//    }
-//
-
-//
-//    /**
-//     * @return string|null
-//     */
-//    public function getMuxPlaybackId(): ?string
-//    {
-//        if (!$this->owner instanceof Asset) {
-//            return null;
-//        }
-//        return MuxMateHelper::getMuxPlaybackId($this->owner);
 //    }
 //
 

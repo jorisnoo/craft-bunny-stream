@@ -7,20 +7,35 @@ use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\elements\Asset;
+use craft\events\AssetPreviewEvent;
+use craft\events\DefineAssetThumbUrlEvent;
 use craft\events\DefineBehaviorsEvent;
+use craft\events\DefineElementInnerHtmlEvent;
 use craft\events\DefineRulesEvent;
-use craft\events\ModelEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterUrlRulesEvent;
+use craft\events\ReplaceAssetEvent;
+use craft\helpers\Cp;
+use craft\helpers\StringHelper;
 use craft\log\MonologTarget;
 use craft\models\FieldLayout;
+use craft\services\Assets;
 use craft\services\Fields;
+use craft\web\Response;
+use craft\web\UrlManager;
+
+use Monolog\Formatter\LineFormatter;
+
+use Psr\Log\LogLevel;
+
 use jorisnoo\bunnystream\behaviors\BunnyStreamAssetBehavior;
 use jorisnoo\bunnystream\fields\BunnyStreamField;
 use jorisnoo\bunnystream\helpers\BunnyStreamHelper;
 use jorisnoo\bunnystream\models\Settings;
-use Monolog\Formatter\LineFormatter;
-use Psr\Log\LogLevel;
+
 use yii\base\Event;
+use yii\base\ModelEvent;
+use yii\web\Response as BaseResponse;
 
 /**
  * Bunny Stream plugin
@@ -93,6 +108,35 @@ class BunnyStream extends Plugin
                 }
 
                 BunnyStreamHelper::updateOrCreateBunnyStreamVideo($asset);
+            }
+        );
+
+        // Make sure the Bunny Stream attributes are wiped when assets are replaced
+        Event::on(
+            Assets::class,
+            Assets::EVENT_BEFORE_REPLACE_ASSET,
+            static function(ReplaceAssetEvent $event) {
+                $asset = $event->asset;
+                if ($asset->kind !== Asset::KIND_VIDEO) {
+                    return;
+                }
+
+                BunnyStreamHelper::deleteBunnyStreamAttributesForAsset($asset);
+            }
+        );
+
+        // Delete Bunny Stream video when videos are deleted
+        Event::on(
+            Asset::class,
+            Element::EVENT_AFTER_DELETE,
+            static function(Event $event) {
+                /** Asset $asset */
+                $asset = $event->sender;
+                if ($asset->kind !== Asset::KIND_VIDEO) {
+                    return;
+                }
+
+                BunnyStreamHelper::deleteBunnyStreamAttributesForAsset($asset);
             }
         );
 

@@ -13,24 +13,20 @@ class BunnyStreamApiHelper
     {
         ['streamApi' => $streamApi, 'settings' => $settings] = static::getApiClient();
 
-        $result = $streamApi->getVideo(
+        return $streamApi->getVideo(
             libraryId: $settings['libraryId'],
             videoId: $videoId,
         );
-
-        return $result;
     }
 
     public static function deleteVideo(string $videoId)
     {
         ['streamApi' => $streamApi, 'settings' => $settings] = static::getApiClient();
 
-        $result = $streamApi->deleteVideo(
+        return $streamApi->deleteVideo(
             libraryId: $settings['libraryId'],
             videoId: $videoId,
         );
-
-        return $result;
     }
 
     public static function createVideo(string $inputUrl)
@@ -61,7 +57,7 @@ class BunnyStreamApiHelper
         $settings = BunnyStream::getInstance()->getSettings();
         $bunnyStreamAccessKey = $settings?->bunnyStreamAccessKey;
         $bunnyStreamLibraryId = $settings?->bunnyStreamLibraryId;
-        $bunnyStreamCollectionGuid = $settings?->bunnyStreamCollectionId;
+        $bunnyStreamCollectionId = $settings?->bunnyStreamCollectionId;
 
         if (!$bunnyStreamAccessKey) {
             throw new \RuntimeException("No Bunny Stream access key");
@@ -84,7 +80,7 @@ class BunnyStreamApiHelper
             'streamApi' => $streamApi,
             'settings' => [
                 'libraryId' => $bunnyStreamLibraryId,
-                'collection' => $bunnyStreamCollectionGuid,
+                'collection' => $bunnyStreamCollectionId,
             ]
         ];
     }

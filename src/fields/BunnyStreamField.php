@@ -18,7 +18,6 @@ use craft\web\View;
 
 
 use jorisnoo\bunnystream\models\BunnyStreamFieldAttributes;
-use yii\base\InvalidConfigException;
 use yii\db\Schema;
 
 class BunnyStreamField extends Field implements PreviewableFieldInterface
@@ -33,42 +32,34 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         return 'mixed';
     }
 
-    /**
-     * @param mixed $value
-     * @param ElementInterface $element
-     * @return string
-     */
     public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
     {
-//        if (!$value instanceof MuxMateFieldAttributes || !$value->muxAssetId) {
-//            $label = \Craft::t('_bunny-stream', 'Video does not have a Bunny Stream asset');
-//            $content = '❌';
-//        } else {
-//            $muxData = $value->muxMetaData ?? [];
-//            $muxStatus = $muxData['status'] ?? null;
-//            if ($muxStatus !== 'ready') {
-//                $label = \Craft::t('_bunny-stream', 'Bunny Stream video is being processed. Stay tuned!');
-//                $content = '⏳';
-//            } else {
-//                $label = \Craft::t('_bunny-stream', 'Bunny Stream video is ready to play!');
-//                $content = '👍';
-//            }
-//        }
-//        return Html::tag('span', $content, [
-//            'role' => 'img',
-//            'title' => $label,
-//            'aria' => [
-//                'label' => $label,
-//            ],
-//        ]);
-        return '';
+        if (!$value instanceof BunnyStreamFieldAttributes || !$value->bunnyStreamVideoId) {
+            $label = \Craft::t('_bunny-stream', 'Video does not have a Bunny Stream asset');
+            $content = '❌';
+        } else {
+            $bunnyStreamData = $value->bunnyStreamMetaData ?? [];
+            $status = $bunnyStreamData['status'] ?? null;
+            if ((int)$status !== 3) {
+                $label = \Craft::t('_bunny-stream', 'Bunny Stream video is being processed. Stay tuned!');
+                $content = '⏳';
+            } else {
+                $label = \Craft::t('_bunny-stream', 'Bunny Stream video is ready to play!');
+                $content = '👍';
+            }
+        }
+        return Html::tag('span', $content, [
+            'role' => 'img',
+            'title' => $label,
+            'aria' => [
+                'label' => $label,
+            ],
+        ]);
     }
 
     protected function defineRules(): array
     {
-        return array_merge(parent::defineRules(), [
-            // ...
-        ]);
+        return array_merge(parent::defineRules(), []);
     }
 
     public function getSettingsHtml(): ?string
@@ -76,9 +67,6 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         return null;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getContentColumnType(): array|string
     {
         return [
@@ -92,9 +80,6 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         return true;
     }
 
-    /**
-     * @throws InvalidConfigException
-     */
     public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         if ($value instanceof BunnyStreamFieldAttributes) {
@@ -116,19 +101,6 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
             return $warningTip->formHtml();
         }
 
-
-//        $id = Html::id($this->handle);
-//        $namespacedId = Craft::$app->getView()->namespaceInputId($id);
-//        $css = <<< CSS
-//            #$namespacedId-field > .heading {
-//                margin-bottom: 15px;
-//            }
-//            #$namespacedId-field legend {
-//                font-size: 18px;
-//            }
-//            CSS;
-//        Craft::$app->getView()->registerCss($css);
-
         return \Craft::$app->getView()->renderTemplate(
             '_bunny-stream/_components/bunnystream-field-input.twig',
             ['asset' => $element],
@@ -141,17 +113,14 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         return [];
     }
 
-//    protected function searchKeywords(mixed $value, ElementInterface $element): string
-//    {
-//        if ($value instanceof MuxMateFieldAttributes && $value->muxPlaybackId) {
-//            return $value->muxPlaybackId;
-//        }
-//        return '';
-//    }
-//
-//    /**
-//     * @inheritdoc
-//     */
+    protected function searchKeywords(mixed $value, ElementInterface $element): string
+    {
+        if ($value instanceof BunnyStreamFieldAttributes && $value->bunnyStreamVideoId) {
+            return $value->bunnyStreamVideoId;
+        }
+        return '';
+    }
+
 //    public function modifyElementsQuery(ElementQueryInterface $query, mixed $value): void
 //    {
 //        if (!$value) {

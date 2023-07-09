@@ -21,9 +21,9 @@
 
 {% if asset ?? null %}
 
-    <div class="pane" data-mux-panel="{{ asset.id }}">
+    <div class="pane" data-bunny-panel="{{ asset.id }}">
 
-        <div data-mux-fields>
+        <div data-bunny-fields>
             {{ forms.copyTextField({
                 id: "bunny-stream-video-id-#{asset.id}",
                 label: 'Bunny Stream Video ID'|t('_bunny-stream'),
@@ -52,7 +52,7 @@
 
         <hr />
 
-        <div data-mux-data="{{ asset.id }}">
+        <div data-bunny-data="{{ asset.id }}">
 
             {% if asset.bunnyStreamVideoId %}
 

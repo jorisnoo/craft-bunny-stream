@@ -18,7 +18,7 @@ class BunnyStreamHelper
 
     public static function getBunnyStreamVideoId(?Asset $asset): ?string
     {
-        return static::getBunnyStreamFieldAttributes($asset)?->bunnyStreamVideoGuid;
+        return static::getBunnyStreamFieldAttributes($asset)?->bunnyStreamVideoId;
     }
 
     public static function getBunnyStreamData(?Asset $asset): ?array
@@ -36,13 +36,13 @@ class BunnyStreamHelper
             return false;
         }
 
-        $bunnyStreamVideoGuid = static::getBunnyStreamVideoId($asset);
+        $bunnyStreamVideoId = static::getBunnyStreamVideoId($asset);
         $bunnyStreamVideo = null;
 
-        if ($bunnyStreamVideoGuid) {
+        if ($bunnyStreamVideoId) {
             // Get existing Bunny Stream Video
             try {
-                $bunnyStreamVideo = BunnyStreamApiHelper::getVideo($bunnyStreamVideoGuid);
+                $bunnyStreamVideo = BunnyStreamApiHelper::getVideo($bunnyStreamVideoId);
             } catch (\Throwable $e) {
                 \Craft::error($e, __METHOD__);
             }
@@ -65,7 +65,7 @@ class BunnyStreamHelper
 
         if (!$bunnyStreamVideo) {
             // Still no Mux asset; make sure the data on the Craft asset is wiped out and bail
-            static::deleteMuxAttributesForAsset($asset);
+            static::deleteBunnyStreamAttributesForAsset($asset);
             return false;
         }
 
@@ -97,7 +97,7 @@ class BunnyStreamHelper
         }
 
         if (!$success) {
-            \Craft::error("Unable to save Mux attributes to asset: " . Json::encode($asset->getErrors()), __METHOD__);
+            \Craft::error("Unable to save Bunny Stream attributes to asset: " . Json::encode($asset->getErrors()), __METHOD__);
             return false;
         }
 
@@ -109,15 +109,15 @@ class BunnyStreamHelper
      * @param bool $alsoDeleteBunnyStreamVideo
      * @return bool
      */
-    public static function deleteMuxAttributesForAsset(?Asset $asset, bool $alsoDeleteBunnyStreamVideo = true): bool
+    public static function deleteBunnyStreamAttributesForAsset(?Asset $asset, bool $alsoDeleteBunnyStreamVideo = true): bool
     {
         if (!$asset) {
             return false;
         }
 
-        $bunnyStreamVideoGuid = static::getBunnyStreamFieldAttributes($asset)?->bunnyStreamVideoGuid;
+        $bunnyStreamVideoId = static::getBunnyStreamFieldAttributes($asset)?->bunnyStreamVideoId;
 
-        if (!$bunnyStreamVideoGuid) {
+        if (!$bunnyStreamVideoId) {
             return false;
         }
 
@@ -134,13 +134,13 @@ class BunnyStreamHelper
         }
 
         if (!$success) {
-            \Craft::error("Unable to delete Mux attributes for asset: " . Json::encode($asset->getErrors()));
+            \Craft::error("Unable to delete Bunny Stream attributes for asset: " . Json::encode($asset->getErrors()));
             return false;
         }
 
         if ($alsoDeleteBunnyStreamVideo) {
             try {
-                BunnyStreamApiHelper::deleteVideo($bunnyStreamVideoGuid);
+                BunnyStreamApiHelper::deleteVideo($bunnyStreamVideoId);
             } catch (\Throwable) {
                 // Don't really care.
             }
