@@ -55,7 +55,7 @@ class BunnyStreamHelper
             throw new \RuntimeException("No Bunny Stream access key");
         }
 
-        return "https://{$bunnyStreamCdnHostname}/{$$bunnyStreamVideoId}/playlist.m3u8";
+        return "https://{$bunnyStreamCdnHostname}/{$bunnyStreamVideoId}/playlist.m3u8";
     }
 
     public static function updateOrCreateBunnyStreamVideo(?Asset $asset): bool
