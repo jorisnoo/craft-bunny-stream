@@ -121,31 +121,28 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         return '';
     }
 
-//    public function modifyElementsQuery(ElementQueryInterface $query, mixed $value): void
-//    {
-//        if (!$value) {
-//            return;
-//        }
-//        /** @var ElementQuery $query */
-//        $column = ElementHelper::fieldColumnFromField($this);
-//        $playbackIdColumn = StringHelper::replace($column, $this->handle, "{$this->handle}_muxPlaybackId");
-//        $metaDataColumn = StringHelper::replace($column, $this->handle, "{$this->handle}_muxMetaData");
-//        if (is_array($value) && (isset($value['muxAssetId']) || isset($value['muxPlaybackId']))) {
-//            if (isset($value['muxAssetId'])) {
-//                $query->subQuery->andWhere(Db::parseParam("content.$column", $value['muxAssetId']));
-//            }
-//            if (isset($value['muxPlaybackId'])) {
-//                $query->subQuery->andWhere(Db::parseParam("content.$playbackIdColumn", $value['muxPlaybackId']));
-//            }
-//            if (isset($value['muxMetaData'])) {
-//                $query->subQuery->andWhere(Db::parseParam("content.$metaDataColumn", $value['muxMetaData']));
-//            }
-//        } else {
-//            $query
-//                ->subQuery
-//                ->andWhere(Db::parseParam("content.$column", $value))
-//                ->andWhere(Db::parseParam("content.$playbackIdColumn", $value));
-//        }
-//    }
+    public function modifyElementsQuery(ElementQueryInterface $query, mixed $value): void
+    {
+        if (!$value) {
+            return;
+        }
+
+        /** @var ElementQuery $query */
+        $column = ElementHelper::fieldColumnFromField($this);
+        $metaDataColumn = StringHelper::replace($column, $this->handle, "{$this->handle}_bunnyStreamMetaData");
+
+        if (is_array($value) && (isset($value['bunnyStreamVideoId']) || isset($value['bunnyStreamMetaData']))) {
+            if (isset($value['bunnyStreamVideoId'])) {
+                $query->subQuery->andWhere(Db::parseParam("content.$column", $value['bunnyStreamVideoId']));
+            }
+            if (isset($value['bunnyStreamMetaData'])) {
+                $query->subQuery->andWhere(Db::parseParam("content.$metaDataColumn", $value['bunnyStreamMetaData']));
+            }
+        } else {
+            $query
+                ->subQuery
+                ->andWhere(Db::parseParam("content.$column", $value));
+        }
+    }
 
 }
