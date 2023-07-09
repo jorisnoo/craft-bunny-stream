@@ -49,13 +49,13 @@ class BunnyStreamHelper
     public static function getHlsUrl($bunnyStreamVideoId): string
     {
         $settings = BunnyStream::getInstance()->getSettings();
-        $bunnyStreamCDNHostname = $settings?->bunnyStreamCDNHostname;
+        $bunnyStreamCdnHostname = $settings?->bunnyStreamCdnHostname;
 
-        if (!$bunnyStreamCDNHostname) {
+        if (!$bunnyStreamCdnHostname) {
             throw new \RuntimeException("No Bunny Stream access key");
         }
 
-        return "https://{$bunnyStreamCDNHostname}/{$$bunnyStreamVideoId}/playlist.m3u8";
+        return "https://{$bunnyStreamCdnHostname}/{$$bunnyStreamVideoId}/playlist.m3u8";
     }
 
     public static function updateOrCreateBunnyStreamVideo(?Asset $asset): bool
