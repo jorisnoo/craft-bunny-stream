@@ -70,7 +70,7 @@ class BunnyStreamHelper
         }
 
         return static::saveBunnyStreamAttributesToAsset($asset, [
-            'bunnyStreamVideoId' => $bunnyStreamVideo['id'],
+            'bunnyStreamVideoId' => $bunnyStreamVideo->id,
             'bunnyStreamMetaData' => (array)$bunnyStreamVideo,
         ]);
     }
