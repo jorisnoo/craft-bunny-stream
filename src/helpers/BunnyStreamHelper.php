@@ -10,7 +10,6 @@ use Illuminate\Support\Collection;
 use jorisnoo\bunnystream\BunnyStream;
 use jorisnoo\bunnystream\fields\BunnyStreamField;
 use jorisnoo\bunnystream\models\BunnyStreamFieldAttributes;
-use vaersaagod\muxmate\helpers\MuxApiHelper;
 
 class BunnyStreamHelper
 {
@@ -182,10 +181,6 @@ class BunnyStreamHelper
         return true;
     }
 
-    /**
-     * @param Asset|null $asset
-     * @return BunnyStreamFieldAttributes|null
-     */
     public static function getBunnyStreamFieldAttributes(?Asset $asset): ?BunnyStreamFieldAttributes
     {
         $bunnyStreamFieldHandle = static::_getBunnyStreamFieldForAsset($asset)?->handle;
@@ -199,11 +194,6 @@ class BunnyStreamHelper
         return $bunnyStreamFieldAttributes;
     }
 
-    /**
-     * @param Asset|null $asset
-     * @param array|null $attributes
-     * @return void
-     */
     private static function _setBunnyStreamFieldAttributes(?Asset $asset, ?array $attributes = null): bool
     {
         if (!$asset) {
@@ -221,10 +211,6 @@ class BunnyStreamHelper
         return true;
     }
 
-    /**
-     * @param Asset|null $asset
-     * @return BunnyStreamField|null
-     */
     private static function _getBunnyStreamFieldForAsset(?Asset $asset): ?BunnyStreamField
     {
         if (!$asset || $asset?->kind !== Asset::KIND_VIDEO) {
@@ -253,14 +239,8 @@ class BunnyStreamHelper
         return static::$_bunnyStreamFieldsByVolume[$volumeHandle] ?? null;
     }
 
-    /**
-     * @param Asset $asset
-     * @return string|null
-     * @throws \yii\base\InvalidConfigException
-     */
     private static function _getAssetUrl(Asset $asset): ?string
     {
-//        return $asset->getUrl();
-        return str_replace('.test', '.noo.dev', $asset->getUrl());
+        return $asset->getUrl();
     }
 }
