@@ -20,7 +20,7 @@ class BunnyStreamAssetBehavior extends Behavior
 
     public function isBunnyStreamVideoReady(): bool
     {
-        return $this->getBunnyStreamData() === 'finished';
+        return $this->getBunnyStreamStatus() === 'finished';
     }
 
     public function getBunnyStreamHlsUrl(): ?string
