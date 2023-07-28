@@ -44,6 +44,7 @@ class BunnyStreamApiHelper
             ],
             query: [
                 ...$settings['collection'] ? ['collectionId' => $settings['collection']] : [],
+                'thumbnailTime' => 0,
             ],
         );
 
