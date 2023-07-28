@@ -52,10 +52,29 @@ class BunnyStreamHelper
         $bunnyStreamCdnHostname = $settings?->bunnyStreamCdnHostname;
 
         if (!$bunnyStreamCdnHostname) {
-            throw new \RuntimeException("No Bunny Stream access key");
+            throw new \RuntimeException("No Bunny Stream Hostname set");
         }
 
         return "https://{$bunnyStreamCdnHostname}/{$bunnyStreamVideoId}/playlist.m3u8";
+    }
+
+    public static function getThumnailUrl(?Asset $asset): string
+    {
+        if (!$asset) {
+            return false;
+        }
+
+        $settings = BunnyStream::getInstance()->getSettings();
+        $bunnyStreamCdnHostname = $settings?->bunnyStreamCdnHostname;
+
+        if (!$bunnyStreamCdnHostname) {
+            throw new \RuntimeException("No Bunny Stream Hostname set");
+        }
+
+        $thumbnailFileName = self::getBunnyStreamData($asset)['thumbnailFileName'];
+        $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
+
+        return "https://{$bunnyStreamCdnHostname}/{$bunnyStreamVideoId}/{$thumbnailFileName}";
     }
 
     public static function updateOrCreateBunnyStreamVideo(?Asset $asset): bool
