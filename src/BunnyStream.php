@@ -99,11 +99,17 @@ class BunnyStream extends Plugin
             static function(ModelEvent $event) {
                 /** @var Asset $asset */
                 $asset = $event->sender;
+
+                if ($asset->kind !== Asset::KIND_VIDEO) {
+                    return;
+                }
+
                 if (
                     $asset->resaving ||
-                    $asset->kind !== Asset::KIND_VIDEO ||
                     BunnyStreamHelper::getBunnyStreamVideoId($asset)
                 ) {
+                    BunnyStreamHelper::updateBunnyStreamData($asset);
+
                     return;
                 }
 
