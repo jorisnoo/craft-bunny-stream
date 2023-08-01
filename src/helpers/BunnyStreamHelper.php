@@ -269,6 +269,7 @@ class BunnyStreamHelper
 
     private static function _getAssetUrl(Asset $asset): ?string
     {
-        return $asset->getUrl();
+        $url = $asset->getUrl();
+        return str_starts_with($url, 'http') ? $url : null;
     }
 }
