@@ -132,7 +132,7 @@ class BunnyStreamHelper
         }
 
         $bunnyStreamVideoId = static::getBunnyStreamVideoId($asset);
-        
+
         if(!$bunnyStreamVideoId) {
             return false;
         }

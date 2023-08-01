@@ -104,8 +104,12 @@ class BunnyStream extends Plugin
                     return;
                 }
 
+                // prevent an infinite loop of resaving
+                if($asset->resaving) {
+                    return;
+                }
+
                 if (
-                    $asset->resaving ||
                     BunnyStreamHelper::getBunnyStreamVideoId($asset)
                 ) {
                     BunnyStreamHelper::updateBunnyStreamData($asset);
