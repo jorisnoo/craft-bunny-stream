@@ -8,6 +8,7 @@ use craft\elements\Asset;
 use craft\helpers\Json;
 use Illuminate\Support\Collection;
 use jorisnoo\bunnystream\BunnyStream;
+use jorisnoo\bunnystream\exceptions\BunnyException;
 use jorisnoo\bunnystream\fields\BunnyStreamField;
 use jorisnoo\bunnystream\models\BunnyStreamFieldAttributes;
 
@@ -92,6 +93,7 @@ class BunnyStreamHelper
                 $bunnyStreamVideo = BunnyStreamApiHelper::getVideo($bunnyStreamVideoId);
             } catch (\Throwable $e) {
                 \Craft::error($e, __METHOD__);
+                //throw new BunnyException("Unable to get Bunny Stream video: " . $e->getMessage());
             }
         }
 
@@ -101,17 +103,18 @@ class BunnyStreamHelper
                 $assetUrl = static::_getAssetUrl($asset);
 
                 if (!$assetUrl) {
-                    throw new \RuntimeException("Asset ID \"$asset->id\" has no URL");
+                    throw new BunnyException("Asset ID \"$asset->id\" has no URL");
                 }
 
                 $bunnyStreamVideo = BunnyStreamApiHelper::createVideo($assetUrl);
             } catch (\Throwable $e) {
                 \Craft::error($e, __METHOD__);
+                //throw new BunnyException("Unable to create Bunny Stream video: " . $e->getMessage());
             }
         }
 
         if (!$bunnyStreamVideo) {
-            // Still no Mux asset; make sure the data on the Craft asset is wiped out and bail
+            // Still no Bunny asset; make sure the data on the Craft asset is wiped out and bail
             static::deleteBunnyStreamAttributesForAsset($asset);
             return false;
         }
@@ -122,7 +125,8 @@ class BunnyStreamHelper
         ]);
     }
 
-    public static function updateBunnyStreamData(?Asset $asset) {
+    public static function updateBunnyStreamData(?Asset $asset): bool
+    {
         if (!$asset) {
             return false;
         }
@@ -149,12 +153,14 @@ class BunnyStreamHelper
             $success = \Craft::$app->getElements()->saveElement($asset, false);
         } catch (\Throwable $e) {
             \Craft::error($e, __METHOD__);
-            return false;
+            throw new BunnyException("Unable to save Bunny Stream attributes to asset: " . $e->getMessage());
+            //return false;
         }
 
         if (!$success) {
             \Craft::error("Unable to save Bunny Stream attributes to asset: " . Json::encode($asset->getErrors()), __METHOD__);
-            return false;
+            throw new BunnyException("Unable to save Bunny Stream attributes to asset: " . Json::encode($asset->getErrors()));
+            //return false;
         }
 
         return true;
@@ -181,19 +187,21 @@ class BunnyStreamHelper
             $success = \Craft::$app->getElements()->saveElement($asset, false);
         } catch (\Throwable $e) {
             \Craft::error($e, __METHOD__);
-            return false;
+            throw new BunnyException("Unable to delete Bunny Stream attributes for asset: " . $e->getMessage());
+            //return false;
         }
 
         if (!$success) {
             \Craft::error("Unable to delete Bunny Stream attributes for asset: " . Json::encode($asset->getErrors()));
-            return false;
+            throw new BunnyException("Unable to delete Bunny Stream attributes for asset: " . Json::encode($asset->getErrors()));
+            //return false;
         }
 
         if ($alsoDeleteBunnyStreamVideo) {
             try {
                 BunnyStreamApiHelper::deleteVideo($bunnyStreamVideoId);
-            } catch (\Throwable) {
-                // Don't really care.
+            } catch (\Throwable $e) {
+                \Craft::error("Unable to delete Bunny Stream video: " . $e->getMessage(), __METHOD__);
             }
         }
 
@@ -252,6 +260,7 @@ class BunnyStreamHelper
 
         } catch (\Throwable $e) {
             \Craft::error($e, __METHOD__);
+            //throw new BunnyException("Unable to get Bunny Stream field for asset: " . $e->getMessage());
             return null;
         }
 
