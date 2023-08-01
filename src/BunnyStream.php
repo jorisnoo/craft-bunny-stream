@@ -123,6 +123,7 @@ class BunnyStream extends Plugin
             Assets::EVENT_BEFORE_REPLACE_ASSET,
             static function(ReplaceAssetEvent $event) {
                 $asset = $event->asset;
+
                 if ($asset->kind !== Asset::KIND_VIDEO) {
                     return;
                 }

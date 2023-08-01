@@ -132,6 +132,11 @@ class BunnyStreamHelper
         }
 
         $bunnyStreamVideoId = static::getBunnyStreamVideoId($asset);
+        
+        if(!$bunnyStreamVideoId) {
+            return false;
+        }
+
         $bunnyStreamVideo = BunnyStreamApiHelper::getVideo($bunnyStreamVideoId);
 
         return static::saveBunnyStreamAttributesToAsset($asset, [
