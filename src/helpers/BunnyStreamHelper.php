@@ -269,6 +269,10 @@ class BunnyStreamHelper
 
     private static function _getAssetUrl(Asset $asset): ?string
     {
+        if (\Craft::$app->env === 'dev') {
+            return null;
+        }
+
         $url = $asset->getUrl();
         return str_starts_with($url, 'http') ? $url : null;
     }
