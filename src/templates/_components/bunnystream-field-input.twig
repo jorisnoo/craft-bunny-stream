@@ -23,32 +23,20 @@
 
     <div class="pane" data-bunny-panel="{{ asset.id }}">
 
-        <div data-bunny-fields>
-            {{ forms.copyTextField({
-                id: "bunny-stream-video-id-#{asset.id}",
-                label: 'Bunny Stream Video ID'|t('_bunny-stream'),
-                value: asset.bunnyStreamVideoId,
-                class: ['code', not asset.bunnyStreamVideoId ? 'disabled']|filter
-            }) }}
+        {% if asset.bunnyStreamVideoId %}
 
-{#            {{ forms.copyTextField({#}
-{#                id: "mux-playback-id-#{asset.id}",#}
-{#                label: 'Mux Playback ID'|t('_bunny-stream'),#}
-{#                value: asset.muxPlaybackId,#}
-{#                class: ['code', not asset.muxPlaybackId ? 'disabled']|filter#}
-{#            }) }}#}
+            <div data-bunny-fields>
+                {{ forms.copyTextField({
+                    id: "bunny-stream-video-id-#{asset.id}",
+                    label: 'Bunny Stream Video ID'|t('_bunny-stream'),
+                    value: asset.bunnyStreamVideoId,
+                    class: ['code', not asset.bunnyStreamVideoId ? 'disabled']|filter
+                }) }}
 
-            {# HLS stream URL #}
-{#            {{ forms.copyTextField({#}
-{#                id: "mux-stream-url-#{asset.id}",#}
-{#                label: 'Mux Stream URL (HLS)'|t('_bunny-stream'),#}
-{#                value: asset.muxStatus == 'ready' ? asset.muxStreamUrl : '',#}
-{#                class: ['code', not asset.muxStreamUrl or asset.muxStatus != 'ready' ? 'disabled']|filter#}
-{#            }) }}#}
+            </div>
 
-        </div>
-
-        <hr />
+            <hr />
+        {% endif %}
 
         <div data-bunny-data="{{ asset.id }}">
 

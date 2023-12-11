@@ -45,7 +45,7 @@ use yii\web\Response as BaseResponse;
  */
 class BunnyStream extends Plugin
 {
-    public string $schemaVersion = '0.0.1';
+    public string $schemaVersion = '0.0.2';
 
     public function init(): void
     {
@@ -100,25 +100,15 @@ class BunnyStream extends Plugin
                 /** @var Asset $asset */
                 $asset = $event->sender;
 
-                if ($asset->kind !== Asset::KIND_VIDEO) {
-                    return;
-                }
-
-                // prevent an infinite loop of resaving
-                if($asset->resaving) {
-                    return;
-                }
-
                 if (
+                    $asset->resaving ||
+                    $asset->kind !== Asset::KIND_VIDEO ||
                     BunnyStreamHelper::getBunnyStreamVideoId($asset)
                 ) {
-                    // todo: send off to queue
-                    BunnyStreamHelper::updateBunnyStreamData($asset);
-
                     return;
                 }
 
-                BunnyStreamHelper::updateOrCreateBunnyStreamVideo($asset);
+                BunnyStreamHelper::updateOrCreateBunnyStreamAsset($asset);
             }
         );
 
@@ -133,7 +123,7 @@ class BunnyStream extends Plugin
                     return;
                 }
 
-                // todo: delete file?
+                // todo: delete file on bunny stream
 
                 BunnyStreamHelper::deleteBunnyStreamAttributesForAsset($asset);
             }
@@ -144,7 +134,6 @@ class BunnyStream extends Plugin
             Asset::class,
             Element::EVENT_AFTER_DELETE,
             static function(Event $event) {
-                /** Asset $asset */
                 $asset = $event->sender;
                 if ($asset->kind !== Asset::KIND_VIDEO) {
                     return;
@@ -202,15 +191,6 @@ class BunnyStream extends Plugin
 //            }
 //        );
 
-        // Add a route to the webhooks controller
-        Event::on(
-            UrlManager::class,
-            UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-            static function(RegisterUrlRulesEvent $event) {
-                $event->rules['bunnystream/webhook'] = '_bunny-stream/webhook';
-            }
-        );
-
         // Prevent more than one BunnyStream field from being added to a field layout
         // Also prevent BunnyStream fields from being added to non-asset field layouts
         Event::on(
@@ -237,6 +217,15 @@ class BunnyStream extends Plugin
                         }
                     }
                 ];
+            }
+        );
+
+        // Add a route to the webhooks controller
+        Event::on(
+            UrlManager::class,
+            UrlManager::EVENT_REGISTER_SITE_URL_RULES,
+            static function(RegisterUrlRulesEvent $event) {
+                $event->rules['bunnystream/webhook'] = '_bunny-stream/webhook';
             }
         );
     }

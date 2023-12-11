@@ -11,6 +11,7 @@ use jorisnoo\bunnystream\BunnyStream;
 use jorisnoo\bunnystream\exceptions\BunnyException;
 use jorisnoo\bunnystream\fields\BunnyStreamField;
 use jorisnoo\bunnystream\models\BunnyStreamFieldAttributes;
+use jorisnoo\bunnystream\models\BunnyStreamVideoId;
 
 class BunnyStreamHelper
 {
@@ -78,7 +79,7 @@ class BunnyStreamHelper
         return "https://{$bunnyStreamCdnHostname}/{$bunnyStreamVideoId}/{$thumbnailFileName}";
     }
 
-    public static function updateOrCreateBunnyStreamVideo(?Asset $asset): bool
+    public static function updateOrCreateBunnyStreamAsset(?Asset $asset): bool
     {
         if (!$asset) {
             return false;

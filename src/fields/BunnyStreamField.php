@@ -27,24 +27,19 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         return Craft::t('_bunny-stream', 'Bunny Stream');
     }
 
-    public static function valueType(): string
-    {
-        return 'mixed';
-    }
-
     public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
     {
         if (!$value instanceof BunnyStreamFieldAttributes || !$value->bunnyStreamVideoId) {
-            $label = \Craft::t('_bunny-stream', 'Video does not have a Bunny Stream asset');
+            $label = Craft::t('_bunny-stream', 'Video does not have a Bunny Stream asset');
             $content = '❌';
         } else {
             $bunnyStreamData = $value->bunnyStreamMetaData ?? [];
             $status = $bunnyStreamData['status'] ?? null;
             if ((int)$status !== 3) {
-                $label = \Craft::t('_bunny-stream', 'Bunny Stream video is being processed. Stay tuned!');
+                $label = Craft::t('_bunny-stream', 'Bunny Stream video is being processed. Stay tuned!');
                 $content = '⏳';
             } else {
-                $label = \Craft::t('_bunny-stream', 'Bunny Stream video is ready to play!');
+                $label = Craft::t('_bunny-stream', 'Bunny Stream video is ready to play!');
                 $content = '👍';
             }
         }
@@ -60,11 +55,6 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
     protected function defineRules(): array
     {
         return array_merge(parent::defineRules(), []);
-    }
-
-    public function getSettingsHtml(): ?string
-    {
-        return null;
     }
 
     public function getContentColumnType(): array|string
@@ -101,7 +91,7 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
             return $warningTip->formHtml();
         }
 
-        return \Craft::$app->getView()->renderTemplate(
+        return Craft::$app->getView()->renderTemplate(
             '_bunny-stream/_components/bunnystream-field-input.twig',
             ['asset' => $element],
             View::TEMPLATE_MODE_CP
@@ -113,10 +103,11 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         return [];
     }
 
+
     protected function searchKeywords(mixed $value, ElementInterface $element): string
     {
-        if ($value instanceof BunnyStreamFieldAttributes && $value->bunnyStreamVideoId) {
-            return $value->bunnyStreamVideoId;
+        if ($value instanceof BunnyStreamFieldAttributes) {
+            return $value->bunnyStreamVideoId ?: '';
         }
         return '';
     }
@@ -126,17 +117,15 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         if (!$value) {
             return;
         }
-
         /** @var ElementQuery $query */
         $column = ElementHelper::fieldColumnFromField($this);
         $metaDataColumn = StringHelper::replace($column, $this->handle, "{$this->handle}_bunnyStreamMetaData");
-
-        if (is_array($value) && (isset($value['bunnyStreamVideoId']) || isset($value['bunnyStreamMetaData']))) {
-            if (isset($value['bunnyStreamVideoId'])) {
-                $query->subQuery->andWhere(Db::parseParam("content.$column", $value['bunnyStreamVideoId']));
-            }
-            if (isset($value['bunnyStreamMetaData'])) {
-                $query->subQuery->andWhere(Db::parseParam("content.$metaDataColumn", $value['bunnyStreamMetaData']));
+        if (is_array($value)) {
+            $keys = array_keys($value);
+            foreach ($keys as $key) {
+                $query
+                    ->subQuery
+                    ->andWhere(Db::parseParam("JSON_EXTRACT(content.$metaDataColumn, '$.$key')", $value[$key]));
             }
         } else {
             $query
