@@ -49,26 +49,38 @@ class BunnyStreamHelper
         };
     }
 
-    public static function getHlsUrl($bunnyStreamVideoId): string
+    private static function getBunnyStreamCdnHostname(): string
     {
-        $settings = BunnyStream::getInstance()->getSettings();
-        $bunnyStreamCdnHostname = $settings?->bunnyStreamCdnHostname;
+        $bunnyStreamCdnHostname = BunnyStream::getInstance()->getSettings()?->bunnyStreamCdnHostname;
 
         if (!$bunnyStreamCdnHostname) {
             throw new \RuntimeException("No Bunny Stream Hostname set");
         }
+
+        return $bunnyStreamCdnHostname;
+    }
+
+    private static function getBunnyStreamLibraryId(): string
+    {
+        $bunnyStreamLibraryId = BunnyStream::getInstance()->getSettings()?->bunnyStreamLibraryId;
+
+        if (!$bunnyStreamLibraryId) {
+            throw new \RuntimeException("No Bunny Stream Library ID set");
+        }
+
+        return $bunnyStreamLibraryId;
+    }
+
+    public static function getHlsUrl($bunnyStreamVideoId): string
+    {
+        $bunnyStreamCdnHostname = self::getBunnyStreamCdnHostname();
 
         return "https://{$bunnyStreamCdnHostname}/{$bunnyStreamVideoId}/playlist.m3u8";
     }
 
     public static function getDirectUrl($bunnyStreamVideoId): string
     {
-        $settings = BunnyStream::getInstance()->getSettings();
-        $bunnyStreamLibraryId = $settings?->bunnyStreamLibraryId;
-
-        if (!$bunnyStreamLibraryId) {
-            throw new \RuntimeException("No Bunny Stream Hostname set");
-        }
+        $bunnyStreamLibraryId = self::getBunnyStreamLibraryId();
 
         return "https://iframe.mediadelivery.net/embed/{$bunnyStreamLibraryId}/{$bunnyStreamVideoId}";
     }
@@ -79,12 +91,7 @@ class BunnyStreamHelper
             return false;
         }
 
-        $settings = BunnyStream::getInstance()->getSettings();
-        $bunnyStreamCdnHostname = $settings?->bunnyStreamCdnHostname;
-
-        if (!$bunnyStreamCdnHostname) {
-            throw new \RuntimeException("No Bunny Stream Hostname set");
-        }
+        $bunnyStreamCdnHostname = self::getBunnyStreamCdnHostname();
 
         $thumbnailFileName = self::getBunnyStreamData($asset)['thumbnailFileName'];
         $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
