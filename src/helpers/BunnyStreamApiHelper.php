@@ -2,7 +2,9 @@
 
 namespace jorisnoo\bunnystream\helpers;
 
+use Craft;
 use jorisnoo\bunnystream\BunnyStream;
+use RuntimeException;
 use ToshY\BunnyNet\Client\BunnyClient;
 use ToshY\BunnyNet\StreamAPI;
 
@@ -46,7 +48,7 @@ class BunnyStreamApiHelper
         $video = $result->getContents();
 
         if ($video['statusCode'] !== 200) {
-            throw new \RuntimeException("Error Creating Bunny Stream Video - " . $video['message']);
+            throw new RuntimeException("Error Creating Bunny Stream Video - " . $video['message']);
         }
 
         return static::getVideo($video['id']);
@@ -71,12 +73,12 @@ class BunnyStreamApiHelper
     private static function getStreamApiClient($settings): StreamAPI
     {
         if (!$settings?->bunnyStreamAccessKey || !$settings?->bunnyStreamLibraryId) {
-            throw new \RuntimeException("No Bunny Stream access key or library ID");
+            throw new RuntimeException("No Bunny Stream access key or library ID");
         }
 
         return new StreamAPI(
             apiKey: $settings?->bunnyStreamAccessKey,
-            client: new BunnyClient(\Craft::createGuzzleClient())
+            client: new BunnyClient(Craft::createGuzzleClient())
         );
     }
 }

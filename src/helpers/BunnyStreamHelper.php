@@ -60,6 +60,18 @@ class BunnyStreamHelper
         return "https://{$bunnyStreamCdnHostname}/{$bunnyStreamVideoId}/playlist.m3u8";
     }
 
+    public static function getDirectUrl($bunnyStreamVideoId): string
+    {
+        $settings = BunnyStream::getInstance()->getSettings();
+        $bunnyStreamLibraryId = $settings?->bunnyStreamLibraryId;
+
+        if (!$bunnyStreamLibraryId) {
+            throw new \RuntimeException("No Bunny Stream Hostname set");
+        }
+
+        return "https://iframe.mediadelivery.net/embed/{$bunnyStreamLibraryId}/{$bunnyStreamVideoId}";
+    }
+
     public static function getThumbnailUrl(?Asset $asset): string
     {
         if (!$asset) {

@@ -51,9 +51,7 @@ class WebhookController extends Controller
             $bunnyStreamFieldHandle = $bunnyStreamField->handle;
             $asset = Asset::find()
                 ->kind(Asset::KIND_VIDEO)
-                ->$bunnyStreamFieldHandle([
-                    'id' => $videoId,
-                ])
+                ->$bunnyStreamFieldHandle($videoId)
                 ->one();
             if ($asset) {
                 break;

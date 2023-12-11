@@ -30,9 +30,17 @@
                     id: "bunny-stream-video-id-#{asset.id}",
                     label: 'Bunny Stream Video ID'|t('_bunny-stream'),
                     value: asset.bunnyStreamVideoId,
-                    class: ['code', not asset.bunnyStreamVideoId ? 'disabled']|filter
+                    class: 'code',
                 }) }}
+            </div>
 
+            <div data-bunny-fields>
+                {{ forms.copyTextField({
+                    id: "bunny-stream-playback-url-#{asset.id}",
+                    label: 'Bunny Stream Playback URL'|t('_bunny-stream'),
+                    value: asset.bunnyStreamDirectUrl,
+                    class: 'code',
+                }) }}
             </div>
 
             <hr />
