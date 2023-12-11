@@ -59,7 +59,7 @@ class BunnyStreamHelper
         return "https://{$bunnyStreamCdnHostname}/{$bunnyStreamVideoId}/playlist.m3u8";
     }
 
-    public static function getThumnailUrl(?Asset $asset): string
+    public static function getThumbnailUrl(?Asset $asset): string
     {
         if (!$asset) {
             return false;

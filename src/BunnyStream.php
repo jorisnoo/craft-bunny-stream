@@ -112,6 +112,7 @@ class BunnyStream extends Plugin
                 if (
                     BunnyStreamHelper::getBunnyStreamVideoId($asset)
                 ) {
+                    // todo: send off to queue
                     BunnyStreamHelper::updateBunnyStreamData($asset);
 
                     return;

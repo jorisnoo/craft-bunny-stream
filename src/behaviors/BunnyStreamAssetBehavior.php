@@ -41,7 +41,7 @@ class BunnyStreamAssetBehavior extends Behavior
             return null;
         }
 
-        return BunnyStreamHelper::getThumnailUrl($this->owner);
+        return BunnyStreamHelper::getThumbnailUrl($this->owner);
     }
 
     public function getBunnyStreamVideoId(): ?string
