@@ -141,53 +141,28 @@ class BunnyStream extends Plugin
             }
         );
 
-//        Event::on(
-//            Cp::class,
-//            Cp::EVENT_DEFINE_ELEMENT_INNER_HTML,
-//            static function(DefineElementInnerHtmlEvent $event) {
-//                $element = $event->element;
-//                if (
-//                    !$element instanceof Asset ||
-//                    $element->kind !== Asset::KIND_VIDEO ||
-//                    $event->size !== 'large' ||
-//                    !MuxMateHelper::getMuxPlaybackId($element) ||
-//                    MuxMateHelper::getMuxStatus($element) !== 'ready'
-//                ) {
-//                    return;
-//                }
-//                $event->innerHtml = str_replace('class="elementthumb', 'class="elementthumb muxvideo', $event->innerHtml);
-//                $css = <<< CSS
-//                    .elementthumb.muxvideo::before {
-//                        content: "VIDEO";
-//                        display: block;
-//                        position: absolute;
-//                        background-color: black;
-//                        color: white;
-//                        left: 50%;
-//                        top: 50%;
-//                        transform: translate(-50%, -50%);
-//                        pointer-events: none;
-//                        font-size: 11px;
-//                        border-radius: 3px;
-//                        padding: 0 4px;
-//                    }
-//                CSS;
-//                \Craft::$app->getView()->registerCss($css);
-//            }
-//        );
-//
-//        // Add video preview handler
-//        Event::on(
-//            Assets::class,
-//            Assets::EVENT_REGISTER_PREVIEW_HANDLER,
-//            static function(AssetPreviewEvent $event) {
-//                $asset = $event->asset;
-//                if ($asset->kind !== Asset::KIND_VIDEO) {
-//                    return;
-//                }
-//                $event->previewHandler = new MuxVideoPreview($asset);
-//            }
-//        );
+        Event::on(
+            Assets::class,
+            Assets::EVENT_DEFINE_THUMB_URL,
+            function (DefineAssetThumbUrlEvent $event) {
+                $asset = $event->asset;
+                if (
+                    $asset->kind !== Asset::KIND_VIDEO ||
+                    !BunnyStreamHelper::getBunnyStreamVideoId($asset) ||
+                    BunnyStreamHelper::getBunnyStreamStatus($asset) !== 'finished'
+                ) {
+                    return;
+                }
+
+                $url = BunnyStreamHelper::getThumbnailUrl($asset);
+
+                if (empty($url)) {
+                    return;
+                }
+
+                $event->url = $url;
+            }
+        );
 
         // Prevent more than one BunnyStream field from being added to a field layout
         // Also prevent BunnyStream fields from being added to non-asset field layouts
