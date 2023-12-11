@@ -123,9 +123,7 @@ class BunnyStream extends Plugin
                     return;
                 }
 
-                // todo: delete file on bunny stream
-
-                BunnyStreamHelper::deleteBunnyStreamAttributesForAsset($asset);
+                BunnyStreamHelper::deleteBunnyStreamVideo($asset);
             }
         );
 
@@ -139,7 +137,7 @@ class BunnyStream extends Plugin
                     return;
                 }
 
-                BunnyStreamHelper::deleteBunnyStreamAttributesForAsset($asset);
+                BunnyStreamHelper::deleteBunnyStreamVideo($asset);
             }
         );
 
