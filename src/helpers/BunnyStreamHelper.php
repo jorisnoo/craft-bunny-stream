@@ -71,30 +71,27 @@ class BunnyStreamHelper
         return $bunnyStreamLibraryId;
     }
 
-    public static function getHlsUrl($bunnyStreamVideoId): string
+    public static function getHlsUrl(Asset $asset): string
     {
+        $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
         $bunnyStreamCdnHostname = self::getBunnyStreamCdnHostname();
 
         return "https://{$bunnyStreamCdnHostname}/{$bunnyStreamVideoId}/playlist.m3u8";
     }
 
-    public static function getDirectUrl($bunnyStreamVideoId): string
+    public static function getDirectUrl(Asset $asset): string
     {
+        $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
         $bunnyStreamLibraryId = self::getBunnyStreamLibraryId();
 
         return "https://iframe.mediadelivery.net/embed/{$bunnyStreamLibraryId}/{$bunnyStreamVideoId}";
     }
 
-    public static function getThumbnailUrl(?Asset $asset): string
+    public static function getThumbnailUrl(Asset $asset): string
     {
-        if (!$asset) {
-            return false;
-        }
-
-        $bunnyStreamCdnHostname = self::getBunnyStreamCdnHostname();
-
-        $thumbnailFileName = self::getBunnyStreamData($asset)['thumbnailFileName'];
         $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
+        $bunnyStreamCdnHostname = self::getBunnyStreamCdnHostname();
+        $thumbnailFileName = self::getBunnyStreamData($asset)['thumbnailFileName'];
 
         return "https://{$bunnyStreamCdnHostname}/{$bunnyStreamVideoId}/{$thumbnailFileName}";
     }

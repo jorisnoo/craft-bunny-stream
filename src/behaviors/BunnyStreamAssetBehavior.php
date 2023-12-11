@@ -25,14 +25,11 @@ class BunnyStreamAssetBehavior extends Behavior
 
     public function getBunnyStreamHlsUrl(): ?string
     {
-        if (
-            !$this->owner instanceof Asset ||
-            !$playbackId = BunnyStreamHelper::getBunnyStreamVideoId($this->owner)
-        ) {
+        if (!$this->owner instanceof Asset) {
             return null;
         }
 
-        return BunnyStreamHelper::getHlsUrl($playbackId);
+        return BunnyStreamHelper::getHlsUrl($this->owner);
     }
 
     public function getBunnyStreamThumbnailUrl(): ?string

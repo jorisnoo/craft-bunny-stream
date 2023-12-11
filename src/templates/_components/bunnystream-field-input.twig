@@ -33,12 +33,21 @@
                     class: 'code',
                 }) }}
             </div>
-
+            <br>
             <div data-bunny-fields>
                 {{ forms.copyTextField({
                     id: "bunny-stream-playback-url-#{asset.id}",
                     label: 'Bunny Stream Playback URL'|t('_bunny-stream'),
                     value: asset.bunnyStreamDirectUrl,
+                    class: 'code',
+                }) }}
+            </div>
+            <br>
+            <div data-bunny-fields>
+                {{ forms.copyTextField({
+                    id: "bunny-stream-hls-url-#{asset.id}",
+                    label: 'Bunny Stream Hls URL'|t('_bunny-stream'),
+                    value: asset.bunnyStreamHlsUrl,
                     class: 'code',
                 }) }}
             </div>
