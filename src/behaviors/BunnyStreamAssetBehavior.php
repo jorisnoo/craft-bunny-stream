@@ -32,13 +32,15 @@ class BunnyStreamAssetBehavior extends Behavior
         return BunnyStreamHelper::getHlsUrl($this->owner);
     }
 
-    public function getBunnyStreamThumbnailUrl(): ?string
+    public function getBunnyStreamThumbnailUrl(bool $relative = false): ?string
     {
         if (!$this->owner instanceof Asset) {
             return null;
         }
 
-        return BunnyStreamHelper::getThumbnailUrl($this->owner);
+        return $relative
+            ? BunnyStreamHelper::getRelativeThumbnailUrl($this->owner)
+            : BunnyStreamHelper::getThumbnailUrl($this->owner);
     }
 
     public function getBunnyStreamDirectUrl(): ?string

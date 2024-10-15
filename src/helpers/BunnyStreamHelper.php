@@ -87,6 +87,14 @@ class BunnyStreamHelper
         return "https://iframe.mediadelivery.net/embed/{$bunnyStreamLibraryId}/{$bunnyStreamVideoId}";
     }
 
+    public static function getRelativeThumbnailUrl(Asset $asset): string
+    {
+        $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
+        $thumbnailFileName = self::getBunnyStreamData($asset)['thumbnailFileName'];
+
+        return "{$bunnyStreamVideoId}/{$thumbnailFileName}";
+    }
+
     public static function getThumbnailUrl(Asset $asset): string
     {
         $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
