@@ -92,7 +92,7 @@ class BunnyStreamHelper
         $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
         $thumbnailFileName = self::getBunnyStreamData($asset)['thumbnailFileName'];
 
-        return "{$bunnyStreamVideoId}/{$thumbnailFileName}";
+        return "/{$bunnyStreamVideoId}/{$thumbnailFileName}";
     }
 
     public static function getThumbnailUrl(Asset $asset): string
