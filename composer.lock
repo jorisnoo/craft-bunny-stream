@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "71ab5ebda6dd59c95dc2a8b66476963c",
+    "content-hash": "ada0740ea76e47854a3d2e1437eab9c2",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -6851,30 +6851,32 @@
         },
         {
             "name": "toshy/bunnynet-php",
-            "version": "4.5.0",
+            "version": "9.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ToshY/BunnyNet-PHP.git",
-                "reference": "7548238387896551d589ef74c10ee866d506c1e4"
+                "reference": "a3bc04cd4d6f66fbaf6abde4d4a0923b9f0de7a8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ToshY/BunnyNet-PHP/zipball/7548238387896551d589ef74c10ee866d506c1e4",
-                "reference": "7548238387896551d589ef74c10ee866d506c1e4",
+                "url": "https://api.github.com/repos/ToshY/BunnyNet-PHP/zipball/a3bc04cd4d6f66fbaf6abde4d4a0923b9f0de7a8",
+                "reference": "a3bc04cd4d6f66fbaf6abde4d4a0923b9f0de7a8",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "nyholm/psr7": "^1.6.1",
-                "php": "^8.1",
+                "php": "^8.2",
                 "psr/http-client": "^1.0"
             },
             "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.64",
+                "cebe/php-openapi": "^1.8",
+                "friendsofphp/php-cs-fixer": "^3.94",
+                "nette/php-generator": "^4.1",
                 "phpmd/phpmd": "^2.15",
-                "phpstan/phpstan": "^1.12",
-                "phpunit/phpunit": "^10.0",
-                "rector/rector": "^1.0"
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5",
+                "rector/rector": "^2.3"
             },
             "type": "library",
             "autoload": {
@@ -6906,9 +6908,9 @@
             ],
             "support": {
                 "issues": "https://github.com/ToshY/BunnyNet-PHP/issues",
-                "source": "https://github.com/ToshY/BunnyNet-PHP/tree/4.5.0"
+                "source": "https://github.com/ToshY/BunnyNet-PHP/tree/9.0.0"
             },
-            "time": "2024-09-01T14:15:38+00:00"
+            "time": "2026-03-14T22:09:23+00:00"
         },
         {
             "name": "twig/twig",

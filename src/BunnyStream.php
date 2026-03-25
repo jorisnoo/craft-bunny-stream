@@ -55,7 +55,7 @@ class BunnyStream extends Plugin
     {
         $logTarget = new FileTarget();
         $logTarget->logFile = Craft::getAlias('@storage/logs/bunny-stream-' . date('Y-m-d') . '.log');
-        $logTarget->levels = ['error', 'warning', 'info'];
+        $logTarget->setLevels(['error', 'warning', 'info']);
         $logTarget->categories = ['_bunny-stream'];
         $logTarget->maxFileSize = 10240;
         $logTarget->maxLogFiles = 30;
@@ -133,7 +133,7 @@ class BunnyStream extends Plugin
         Event::on(
             Assets::class,
             Assets::EVENT_DEFINE_THUMB_URL,
-            function (DefineAssetThumbUrlEvent $event) {
+            function(DefineAssetThumbUrlEvent $event) {
                 $asset = $event->asset;
                 if (
                     $asset->kind !== Asset::KIND_VIDEO ||
@@ -177,7 +177,7 @@ class BunnyStream extends Plugin
                         if ($hasBunnyStreamField && $fieldLayout->type !== Asset::class) {
                             $fieldLayout->addError('fields', Craft::t('_bunny-stream', 'BunnyStream fields are only supported for assets.'));
                         }
-                    }
+                    },
                 ];
             }
         );

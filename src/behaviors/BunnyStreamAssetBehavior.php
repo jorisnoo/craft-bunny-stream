@@ -3,8 +3,6 @@
 namespace Noo\CraftBunnyStream\behaviors;
 
 use craft\elements\Asset;
-use craft\helpers\Template;
-use craft\web\View;
 
 use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
 
@@ -12,7 +10,6 @@ use yii\base\Behavior;
 
 class BunnyStreamAssetBehavior extends Behavior
 {
-
     public function isBunnyStreamVideo(): bool
     {
         return !empty($this->getBunnyStreamVideoId());
@@ -100,5 +97,4 @@ class BunnyStreamAssetBehavior extends Behavior
 
         return (int)$width / (int)$height;
     }
-
 }

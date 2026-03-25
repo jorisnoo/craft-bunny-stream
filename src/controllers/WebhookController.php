@@ -12,7 +12,6 @@ use yii\web\BadRequestHttpException;
 
 class WebhookController extends Controller
 {
-
     public array|bool|int $allowAnonymous = true;
 
     public $enableCsrfValidation = false;
@@ -66,5 +65,4 @@ class WebhookController extends Controller
 
         return true;
     }
-
 }

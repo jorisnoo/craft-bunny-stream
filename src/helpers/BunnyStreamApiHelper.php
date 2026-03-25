@@ -4,81 +4,96 @@ namespace Noo\CraftBunnyStream\helpers;
 
 use Craft;
 use Noo\CraftBunnyStream\BunnyStream;
+use Noo\CraftBunnyStream\models\Settings;
 use RuntimeException;
-use ToshY\BunnyNet\Client\BunnyClient;
-use ToshY\BunnyNet\StreamAPI;
+use ToshY\BunnyNet\BunnyHttpClient;
+use ToshY\BunnyNet\Enum\Endpoint;
+use ToshY\BunnyNet\Model\Api\Stream\ManageVideos\DeleteVideo;
+use ToshY\BunnyNet\Model\Api\Stream\ManageVideos\FetchVideo;
+use ToshY\BunnyNet\Model\Api\Stream\ManageVideos\GetVideo;
 
 class BunnyStreamApiHelper
 {
+    private static ?BunnyHttpClient $client = null;
 
-    public static function getVideo(string $videoId)
+    public static function getVideo(string $videoId): mixed
     {
-        $settings = static::getBunnyStreamApiSettings();
+        $libraryId = self::getLibraryId();
 
-        return $settings->streamApi->getVideo(
-            libraryId: $settings->settings['libraryId'],
-            videoId: $videoId,
+        return self::getClient()->request(
+            new GetVideo(libraryId: $libraryId, videoId: $videoId),
         )->getContents();
     }
 
-    public static function deleteVideo(string $videoId)
+    public static function deleteVideo(string $videoId): mixed
     {
-        $settings = static::getBunnyStreamApiSettings();
+        $libraryId = self::getLibraryId();
 
-        return $settings->streamApi->deleteVideo(
-            libraryId: $settings->settings['libraryId'],
-            videoId: $videoId,
+        return self::getClient()->request(
+            new DeleteVideo(libraryId: $libraryId, videoId: $videoId),
         )->getContents();
     }
 
-
-    public static function createVideo(string $inputUrl)
+    public static function createVideo(string $inputUrl): mixed
     {
-        $settings = static::getBunnyStreamApiSettings();
+        $settings = self::getSettings();
+        $libraryId = (int)$settings->bunnyStreamLibraryId;
 
-        $result = $settings->streamApi->fetchVideo(
-            libraryId: $settings->settings['libraryId'],
-            body: ['url' => $inputUrl],
-            query: [
-                ...$settings->settings['collection'] ? ['collectionId' => $settings->settings['collection']] : [],
-                'thumbnailTime' => 0,
-            ],
-        );
+        $query = ['thumbnailTime' => 0];
 
-        $video = $result->getContents();
-
-        if ($video['statusCode'] !== 200) {
-            throw new RuntimeException("Error Creating Bunny Stream Video - " . $video['message']);
+        if ($settings->bunnyStreamCollectionId) {
+            $query['collectionId'] = $settings->bunnyStreamCollectionId;
         }
 
-        return static::getVideo($video['id']);
-    }
+        $result = self::getClient()->request(
+            new FetchVideo(
+                libraryId: $libraryId,
+                query: $query,
+                body: ['url' => $inputUrl],
+            ),
+        )->getContents();
 
-    public static function getBunnyStreamApiSettings(): BunnyStreamApiSettings
-    {
-        $settings = BunnyStream::getInstance()->getSettings();
-
-        $apiSettings = new BunnyStreamApiSettings();
-
-        $apiSettings->settings = [
-            'libraryId' => $settings?->bunnyStreamLibraryId,
-            'collection' => $settings?->bunnyStreamCollectionId,
-        ];
-
-        $apiSettings->streamApi = static::getStreamApiClient($settings);
-
-        return $apiSettings;
-    }
-
-    private static function getStreamApiClient($settings): StreamAPI
-    {
-        if (!$settings?->bunnyStreamAccessKey || !$settings?->bunnyStreamLibraryId) {
-            throw new RuntimeException("No Bunny Stream access key or library ID");
+        if ($result['statusCode'] !== 200) {
+            throw new RuntimeException("Error Creating Bunny Stream Video - " . $result['message']);
         }
 
-        return new StreamAPI(
-            apiKey: $settings?->bunnyStreamAccessKey,
-            client: new BunnyClient(Craft::createGuzzleClient())
+        return self::getVideo($result['id']);
+    }
+
+    private static function getSettings(): Settings
+    {
+        return BunnyStream::getInstance()->getSettings();
+    }
+
+    private static function getLibraryId(): int
+    {
+        $libraryId = self::getSettings()->bunnyStreamLibraryId;
+
+        if (!$libraryId) {
+            throw new RuntimeException('No Bunny Stream Library ID set');
+        }
+
+        return (int)$libraryId;
+    }
+
+    private static function getClient(): BunnyHttpClient
+    {
+        if (self::$client !== null) {
+            return self::$client;
+        }
+
+        $settings = self::getSettings();
+
+        if (!$settings->bunnyStreamAccessKey || !$settings->bunnyStreamLibraryId) {
+            throw new RuntimeException('No Bunny Stream access key or library ID');
+        }
+
+        self::$client = new BunnyHttpClient(
+            client: Craft::createGuzzleClient(),
+            apiKey: $settings->bunnyStreamAccessKey,
+            baseUrl: Endpoint::STREAM,
         );
+
+        return self::$client;
     }
 }

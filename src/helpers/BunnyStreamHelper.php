@@ -12,32 +12,32 @@ use Noo\CraftBunnyStream\BunnyStream;
 use Noo\CraftBunnyStream\exceptions\BunnyException;
 use Noo\CraftBunnyStream\fields\BunnyStreamField;
 use Noo\CraftBunnyStream\models\BunnyStreamFieldAttributes;
+use RuntimeException;
 use Throwable;
 
 class BunnyStreamHelper
 {
-    /** @var BunnyStreamField[] */
-    private static array $_bunnyStreamFieldsByVolume = [];
+    /** @var array<string, BunnyStreamField|null> */
+    private static array $bunnyStreamFieldsByVolume = [];
 
     public static function getBunnyStreamVideoId(?Asset $asset): ?string
     {
-        return static::getBunnyStreamFieldAttributes($asset)?->bunnyStreamVideoId;
+        return self::getBunnyStreamFieldAttributes($asset)?->bunnyStreamVideoId;
     }
 
     public static function getBunnyStreamData(?Asset $asset): ?array
     {
-        return static::getBunnyStreamFieldAttributes($asset)?->bunnyStreamMetaData;
+        return self::getBunnyStreamFieldAttributes($asset)?->bunnyStreamMetaData;
     }
 
     public static function getBunnyStreamStatus(?Asset $asset): ?string
     {
-        $data = static::getBunnyStreamData($asset);
+        $data = self::getBunnyStreamData($asset);
 
         if (!$data) {
             return null;
         }
 
-        // Bunny Stream Statuses:
         return match ((int)$data['status']) {
             1 => 'queued',
             2 => 'processing',
@@ -49,59 +49,37 @@ class BunnyStreamHelper
         };
     }
 
-    private static function getBunnyStreamCdnHostname(): string
-    {
-        $bunnyStreamCdnHostname = BunnyStream::getInstance()->getSettings()?->bunnyStreamCdnHostname;
-
-        if (!$bunnyStreamCdnHostname) {
-            throw new \RuntimeException("No Bunny Stream Hostname set");
-        }
-
-        return $bunnyStreamCdnHostname;
-    }
-
-    private static function getBunnyStreamLibraryId(): string
-    {
-        $bunnyStreamLibraryId = BunnyStream::getInstance()->getSettings()?->bunnyStreamLibraryId;
-
-        if (!$bunnyStreamLibraryId) {
-            throw new \RuntimeException("No Bunny Stream Library ID set");
-        }
-
-        return $bunnyStreamLibraryId;
-    }
-
     public static function getHlsUrl(Asset $asset): string
     {
-        $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
-        $bunnyStreamCdnHostname = self::getBunnyStreamCdnHostname();
+        $videoId = self::getBunnyStreamVideoId($asset);
+        $hostname = self::getCdnHostname();
 
-        return "https://{$bunnyStreamCdnHostname}/{$bunnyStreamVideoId}/playlist.m3u8";
+        return "https://{$hostname}/{$videoId}/playlist.m3u8";
     }
 
     public static function getDirectUrl(Asset $asset): string
     {
-        $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
-        $bunnyStreamLibraryId = self::getBunnyStreamLibraryId();
+        $videoId = self::getBunnyStreamVideoId($asset);
+        $libraryId = self::getLibraryId();
 
-        return "https://iframe.mediadelivery.net/embed/{$bunnyStreamLibraryId}/{$bunnyStreamVideoId}";
+        return "https://iframe.mediadelivery.net/embed/{$libraryId}/{$videoId}";
     }
 
     public static function getRelativeThumbnailUrl(Asset $asset): string
     {
-        $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
+        $videoId = self::getBunnyStreamVideoId($asset);
         $thumbnailFileName = self::getBunnyStreamData($asset)['thumbnailFileName'];
 
-        return "/{$bunnyStreamVideoId}/{$thumbnailFileName}";
+        return "/{$videoId}/{$thumbnailFileName}";
     }
 
     public static function getThumbnailUrl(Asset $asset): string
     {
-        $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
-        $bunnyStreamCdnHostname = self::getBunnyStreamCdnHostname();
+        $videoId = self::getBunnyStreamVideoId($asset);
+        $hostname = self::getCdnHostname();
         $thumbnailFileName = self::getBunnyStreamData($asset)['thumbnailFileName'];
 
-        return "https://{$bunnyStreamCdnHostname}/{$bunnyStreamVideoId}/{$thumbnailFileName}";
+        return "https://{$hostname}/{$videoId}/{$thumbnailFileName}";
     }
 
     public static function updateOrCreateBunnyStreamAsset(?Asset $asset): bool
@@ -110,23 +88,20 @@ class BunnyStreamHelper
             return false;
         }
 
-        $bunnyStreamVideoId = static::getBunnyStreamVideoId($asset);
+        $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
         $bunnyStreamVideo = null;
 
         if ($bunnyStreamVideoId) {
-            // Get existing Bunny Stream Video
             try {
                 $bunnyStreamVideo = BunnyStreamApiHelper::getVideo($bunnyStreamVideoId);
             } catch (Throwable $e) {
                 Craft::error($e, __METHOD__);
-                //throw new BunnyException("Unable to get Bunny Stream video: " . $e->getMessage());
             }
         }
 
         if (!$bunnyStreamVideo) {
-            // Create a new Bunny Stream Video
             try {
-                $assetUrl = static::_getAssetUrl($asset);
+                $assetUrl = self::getAssetUrl($asset);
 
                 if (!$assetUrl) {
                     throw new BunnyException("Asset ID \"$asset->id\" has no URL");
@@ -135,17 +110,15 @@ class BunnyStreamHelper
                 $bunnyStreamVideo = BunnyStreamApiHelper::createVideo($assetUrl);
             } catch (Throwable $e) {
                 Craft::error($e, __METHOD__);
-                //throw new BunnyException("Unable to create Bunny Stream video: " . $e->getMessage());
             }
         }
 
         if (!$bunnyStreamVideo) {
-            // Still no Bunny asset; make sure the data on the Craft asset is wiped out and bail
-            static::deleteBunnyStreamVideo($asset);
+            self::deleteBunnyStreamVideo($asset);
             return false;
         }
 
-        return static::saveBunnyStreamAttributesToAsset($asset, [
+        return self::saveBunnyStreamAttributesToAsset($asset, [
             'bunnyStreamVideoId' => $bunnyStreamVideo['guid'],
             'bunnyStreamMetaData' => (array)$bunnyStreamVideo,
         ]);
@@ -157,15 +130,15 @@ class BunnyStreamHelper
             return false;
         }
 
-        $bunnyStreamVideoId = static::getBunnyStreamVideoId($asset);
+        $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
 
-        if(!$bunnyStreamVideoId) {
+        if (!$bunnyStreamVideoId) {
             return false;
         }
 
         $bunnyStreamVideo = BunnyStreamApiHelper::getVideo($bunnyStreamVideoId);
 
-        return static::saveBunnyStreamAttributesToAsset($asset, [
+        return self::saveBunnyStreamAttributesToAsset($asset, [
             'bunnyStreamVideoId' => $bunnyStreamVideoId,
             'bunnyStreamMetaData' => (array)$bunnyStreamVideo,
         ]);
@@ -173,7 +146,7 @@ class BunnyStreamHelper
 
     public static function saveBunnyStreamAttributesToAsset(Asset $asset, array $attributes): bool
     {
-        if (!static::_setBunnyStreamFieldAttributes($asset, $attributes)) {
+        if (!self::setBunnyStreamFieldAttributes($asset, $attributes)) {
             return false;
         }
 
@@ -185,13 +158,11 @@ class BunnyStreamHelper
         } catch (Throwable $e) {
             Craft::error($e, __METHOD__);
             throw new BunnyException("Unable to save Bunny Stream attributes to asset: " . $e->getMessage());
-            //return false;
         }
 
         if (!$success) {
             Craft::error("Unable to save Bunny Stream attributes to asset: " . Json::encode($asset->getErrors()), __METHOD__);
             throw new BunnyException("Unable to save Bunny Stream attributes to asset: " . Json::encode($asset->getErrors()));
-            //return false;
         }
 
         return true;
@@ -203,13 +174,13 @@ class BunnyStreamHelper
             return false;
         }
 
-        $bunnyStreamVideoId = static::getBunnyStreamFieldAttributes($asset)?->bunnyStreamVideoId;
+        $bunnyStreamVideoId = self::getBunnyStreamFieldAttributes($asset)?->bunnyStreamVideoId;
 
         if (!$bunnyStreamVideoId) {
             return false;
         }
 
-        static::_setBunnyStreamFieldAttributes($asset, null);
+        self::setBunnyStreamFieldAttributes($asset, null);
 
         $asset->setScenario(Element::SCENARIO_ESSENTIALS);
         $asset->resaving = true;
@@ -219,13 +190,11 @@ class BunnyStreamHelper
         } catch (Throwable $e) {
             Craft::error($e, __METHOD__);
             throw new BunnyException("Unable to delete Bunny Stream attributes for asset: " . $e->getMessage());
-            //return false;
         }
 
         if (!$success) {
-            Craft::error("Unable to delete Bunny Stream attributes for asset: " . Json::encode($asset->getErrors()));
+            Craft::error("Unable to delete Bunny Stream attributes for asset: " . Json::encode($asset->getErrors()), __METHOD__);
             throw new BunnyException("Unable to delete Bunny Stream attributes for asset: " . Json::encode($asset->getErrors()));
-            //return false;
         }
 
         if (!$preserveBunnyStreamVideo) {
@@ -241,64 +210,81 @@ class BunnyStreamHelper
 
     public static function getBunnyStreamFieldAttributes(?Asset $asset): ?BunnyStreamFieldAttributes
     {
-        $bunnyStreamFieldHandle = static::_getBunnyStreamFieldForAsset($asset)?->handle;
-        if (!$bunnyStreamFieldHandle) {
+        $field = self::getBunnyStreamFieldForAsset($asset);
+        if (!$field) {
             return null;
         }
 
-        /** @var BunnyStreamFieldAttributes|null $bunnyStreamFieldAttributes */
-        $bunnyStreamFieldAttributes = $asset->$bunnyStreamFieldHandle ?? null;
-
-        return $bunnyStreamFieldAttributes;
+        /** @var BunnyStreamFieldAttributes|null */
+        return $asset->{$field->handle} ?? null;
     }
 
-    private static function _setBunnyStreamFieldAttributes(?Asset $asset, ?array $attributes = null): bool
+    private static function getCdnHostname(): string
+    {
+        $hostname = BunnyStream::getInstance()->getSettings()->bunnyStreamCdnHostname;
+
+        if (!$hostname) {
+            throw new RuntimeException('No Bunny Stream Hostname set');
+        }
+
+        return $hostname;
+    }
+
+    private static function getLibraryId(): string
+    {
+        $libraryId = BunnyStream::getInstance()->getSettings()->bunnyStreamLibraryId;
+
+        if (!$libraryId) {
+            throw new RuntimeException('No Bunny Stream Library ID set');
+        }
+
+        return $libraryId;
+    }
+
+    private static function setBunnyStreamFieldAttributes(?Asset $asset, ?array $attributes = null): bool
     {
         if (!$asset) {
             return false;
         }
 
-        $bunnyStreamFieldHandle = static::_getBunnyStreamFieldForAsset($asset)?->handle;
+        $field = self::getBunnyStreamFieldForAsset($asset);
 
-        if (!$bunnyStreamFieldHandle) {
+        if (!$field) {
             return false;
         }
 
-        $asset->setFieldValue($bunnyStreamFieldHandle, $attributes);
+        $asset->setFieldValue($field->handle, $attributes);
 
         return true;
     }
 
-    private static function _getBunnyStreamFieldForAsset(?Asset $asset): ?BunnyStreamField
+    private static function getBunnyStreamFieldForAsset(?Asset $asset): ?BunnyStreamField
     {
-        if (!$asset || $asset?->kind !== Asset::KIND_VIDEO) {
+        if (!$asset || $asset->kind !== Asset::KIND_VIDEO) {
             return null;
         }
 
-        // Get the first Bunny Stream field for this asset
         try {
             $volumeHandle = $asset->getVolume()->handle;
 
-            if (isset(static::$_bunnyStreamFieldsByVolume[$volumeHandle])) {
-                return static::$_bunnyStreamFieldsByVolume[$volumeHandle];
+            if (isset(self::$bunnyStreamFieldsByVolume[$volumeHandle])) {
+                return self::$bunnyStreamFieldsByVolume[$volumeHandle];
             }
 
-            /** @var FieldInterface|null $bunnyStreamField */
+            /** @var BunnyStreamField|null $bunnyStreamField */
             $bunnyStreamField = Collection::make($asset->getFieldLayout()?->getCustomFields())
                 ->first(static fn(FieldInterface $field) => $field instanceof BunnyStreamField);
 
-            static::$_bunnyStreamFieldsByVolume[$volumeHandle] = $bunnyStreamField;
-
+            self::$bunnyStreamFieldsByVolume[$volumeHandle] = $bunnyStreamField;
         } catch (Throwable $e) {
             Craft::error($e, __METHOD__);
-            //throw new BunnyException("Unable to get Bunny Stream field for asset: " . $e->getMessage());
             return null;
         }
 
-        return static::$_bunnyStreamFieldsByVolume[$volumeHandle] ?? null;
+        return self::$bunnyStreamFieldsByVolume[$volumeHandle] ?? null;
     }
 
-    private static function _getAssetUrl(Asset $asset): ?string
+    private static function getAssetUrl(Asset $asset): ?string
     {
         if (Craft::$app->env === 'dev') {
             return null;
