@@ -1,18 +1,21 @@
 {
     "name": "jorisnoo/craft-bunny-stream",
+    "description": "Bunny Stream integration for Craft CMS.",
     "type": "craft-plugin",
+    "license": "MIT",
     "require": {
-        "php": ">=8.1",
-        "craftcms/cms": "^4.4.0",
+        "php": "^8.2",
+        "craftcms/cms": "^5.0",
         "toshy/bunnynet-php": "^4.0"
     },
     "require-dev": {
-        "roave/security-advisories": "dev-latest",
-        "craftcms/ecs": "dev-main"
+        "craftcms/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main",
+        "roave/security-advisories": "dev-latest"
     },
     "autoload": {
         "psr-4": {
-            "jorisnoo\\bunnystream\\": "src/"
+            "Noo\\CraftBunnyStream\\": "src/"
         }
     },
     "extra": {
@@ -20,7 +23,7 @@
         "name": "Bunny Stream",
         "developer": "Joris Noordermeer",
         "documentationUrl": "",
-        "class": "jorisnoo\\bunnystream\\BunnyStream"
+        "class": "Noo\\CraftBunnyStream\\BunnyStream"
     },
     "scripts": {
         "check-cs": "ecs check --ansi",
@@ -30,11 +33,13 @@
     "config": {
         "sort-packages": true,
         "platform": {
-            "php": "8.1"
+            "php": "8.2"
         },
         "allow-plugins": {
             "yiisoft/yii2-composer": true,
             "craftcms/plugin-installer": true
         }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

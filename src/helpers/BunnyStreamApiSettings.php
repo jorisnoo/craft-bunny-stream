@@ -1,6 +1,6 @@
 <?php
 
-namespace jorisnoo\bunnystream\helpers;
+namespace Noo\CraftBunnyStream\helpers;
 
 class BunnyStreamApiSettings
 {

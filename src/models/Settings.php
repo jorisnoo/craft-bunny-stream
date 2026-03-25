@@ -1,6 +1,6 @@
 <?php
 
-namespace jorisnoo\bunnystream\models;
+namespace Noo\CraftBunnyStream\models;
 
 use craft\base\Model;
 

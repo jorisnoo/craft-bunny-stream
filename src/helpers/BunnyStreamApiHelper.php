@@ -1,9 +1,9 @@
 <?php
 
-namespace jorisnoo\bunnystream\helpers;
+namespace Noo\CraftBunnyStream\helpers;
 
 use Craft;
-use jorisnoo\bunnystream\BunnyStream;
+use Noo\CraftBunnyStream\BunnyStream;
 use RuntimeException;
 use ToshY\BunnyNet\Client\BunnyClient;
 use ToshY\BunnyNet\StreamAPI;

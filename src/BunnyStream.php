@@ -1,41 +1,30 @@
 <?php
 
-namespace jorisnoo\bunnystream;
+namespace Noo\CraftBunnyStream;
 
 use Craft;
 use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\elements\Asset;
-use craft\events\AssetPreviewEvent;
 use craft\events\DefineAssetThumbUrlEvent;
 use craft\events\DefineBehaviorsEvent;
-use craft\events\DefineElementInnerHtmlEvent;
 use craft\events\DefineRulesEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\ReplaceAssetEvent;
-use craft\helpers\Cp;
-use craft\helpers\StringHelper;
-use craft\log\MonologTarget;
 use craft\models\FieldLayout;
 use craft\services\Assets;
 use craft\services\Fields;
-use craft\web\Response;
 use craft\web\UrlManager;
-
-use Monolog\Formatter\LineFormatter;
-
-use Psr\Log\LogLevel;
-
-use jorisnoo\bunnystream\behaviors\BunnyStreamAssetBehavior;
-use jorisnoo\bunnystream\fields\BunnyStreamField;
-use jorisnoo\bunnystream\helpers\BunnyStreamHelper;
-use jorisnoo\bunnystream\models\Settings;
+use Noo\CraftBunnyStream\behaviors\BunnyStreamAssetBehavior;
+use Noo\CraftBunnyStream\fields\BunnyStreamField;
+use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
+use Noo\CraftBunnyStream\models\Settings;
 
 use yii\base\Event;
 use yii\base\ModelEvent;
-use yii\web\Response as BaseResponse;
+use yii\log\FileTarget;
 
 /**
  * Bunny Stream plugin
@@ -51,21 +40,8 @@ class BunnyStream extends Plugin
     {
         parent::init();
 
-        // Register a custom log target, keeping the format as simple as possible.
-        Craft::getLogger()->dispatcher->targets[] = new MonologTarget([
-            'name' => '_bunny-stream',
-            'categories' => ['_bunny-stream', 'jorisnoo\\bunnystream\\*'],
-            'level' => LogLevel::INFO,
-            'logContext' => false,
-            'allowLineBreaks' => false,
-            'formatter' => new LineFormatter(
-                format: "%datetime% %message%\n",
-                dateFormat: 'Y-m-d H:i:s',
-            ),
-        ]);
-
-        // Defer most setup tasks until Craft is fully initialized
         Craft::$app->onInit(function() {
+            $this->defineLogTarget();
             $this->attachEventHandlers();
         });
     }
@@ -73,6 +49,19 @@ class BunnyStream extends Plugin
     protected function createSettingsModel(): ?\craft\base\Model
     {
         return new Settings();
+    }
+
+    private function defineLogTarget(): void
+    {
+        $logTarget = new FileTarget();
+        $logTarget->logFile = Craft::getAlias('@storage/logs/bunny-stream-' . date('Y-m-d') . '.log');
+        $logTarget->levels = ['error', 'warning', 'info'];
+        $logTarget->categories = ['_bunny-stream'];
+        $logTarget->maxFileSize = 10240;
+        $logTarget->maxLogFiles = 30;
+        $logTarget->logVars = [];
+
+        Craft::$app->log->targets[] = $logTarget;
     }
 
     private function attachEventHandlers(): void

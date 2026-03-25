@@ -1,6 +1,6 @@
 <?php
 
-namespace jorisnoo\bunnystream\exceptions;
+namespace Noo\CraftBunnyStream\exceptions;
 
 use Exception;
 

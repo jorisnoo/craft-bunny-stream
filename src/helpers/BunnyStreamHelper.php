@@ -1,6 +1,6 @@
 <?php
 
-namespace jorisnoo\bunnystream\helpers;
+namespace Noo\CraftBunnyStream\helpers;
 
 use Craft;
 use craft\base\Element;
@@ -8,10 +8,10 @@ use craft\base\FieldInterface;
 use craft\elements\Asset;
 use craft\helpers\Json;
 use Illuminate\Support\Collection;
-use jorisnoo\bunnystream\BunnyStream;
-use jorisnoo\bunnystream\exceptions\BunnyException;
-use jorisnoo\bunnystream\fields\BunnyStreamField;
-use jorisnoo\bunnystream\models\BunnyStreamFieldAttributes;
+use Noo\CraftBunnyStream\BunnyStream;
+use Noo\CraftBunnyStream\exceptions\BunnyException;
+use Noo\CraftBunnyStream\fields\BunnyStreamField;
+use Noo\CraftBunnyStream\models\BunnyStreamFieldAttributes;
 use Throwable;
 
 class BunnyStreamHelper

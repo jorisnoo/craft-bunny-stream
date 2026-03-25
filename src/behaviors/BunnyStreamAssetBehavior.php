@@ -1,12 +1,12 @@
 <?php
 
-namespace jorisnoo\bunnystream\behaviors;
+namespace Noo\CraftBunnyStream\behaviors;
 
 use craft\elements\Asset;
 use craft\helpers\Template;
 use craft\web\View;
 
-use jorisnoo\bunnystream\helpers\BunnyStreamHelper;
+use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
 
 use yii\base\Behavior;
 

@@ -1,13 +1,13 @@
 <?php
 
-namespace jorisnoo\bunnystream\controllers;
+namespace Noo\CraftBunnyStream\controllers;
 
 use Craft;
 use craft\elements\Asset;
 use craft\helpers\Json;
 use craft\web\Controller;
-use jorisnoo\bunnystream\fields\BunnyStreamField;
-use jorisnoo\bunnystream\helpers\BunnyStreamHelper;
+use Noo\CraftBunnyStream\fields\BunnyStreamField;
+use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
 use yii\web\BadRequestHttpException;
 
 class WebhookController extends Controller

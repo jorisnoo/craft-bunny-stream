@@ -1,23 +1,16 @@
 <?php
 
-namespace jorisnoo\bunnystream\fields;
+namespace Noo\CraftBunnyStream\fields;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
 use craft\base\PreviewableFieldInterface;
 use craft\elements\Asset;
-use craft\elements\db\ElementQuery;
-use craft\elements\db\ElementQueryInterface;
 use craft\fieldlayoutelements\Tip;
-use craft\helpers\Db;
-use craft\helpers\ElementHelper;
 use craft\helpers\Html;
-use craft\helpers\StringHelper;
 use craft\web\View;
-
-
-use jorisnoo\bunnystream\models\BunnyStreamFieldAttributes;
+use Noo\CraftBunnyStream\models\BunnyStreamFieldAttributes;
 use yii\db\Schema;
 
 class BunnyStreamField extends Field implements PreviewableFieldInterface
@@ -57,7 +50,7 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         return array_merge(parent::defineRules(), []);
     }
 
-    public function getContentColumnType(): array|string
+    public static function dbType(): array|string|null
     {
         return [
             'bunnyStreamVideoId' => Schema::TYPE_STRING,
@@ -70,7 +63,7 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         return true;
     }
 
-    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         if ($value instanceof BunnyStreamFieldAttributes) {
             return $value;
@@ -81,7 +74,7 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         ]);
     }
 
-    protected function inputHtml(mixed $value, ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         if (!$element instanceof Asset || $element->kind !== Asset::KIND_VIDEO) {
             $warningTip = new Tip([
@@ -111,27 +104,4 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         }
         return '';
     }
-
-    public function modifyElementsQuery(ElementQueryInterface $query, mixed $value): void
-    {
-        if (!$value) {
-            return;
-        }
-        /** @var ElementQuery $query */
-        $column = ElementHelper::fieldColumnFromField($this);
-        $metaDataColumn = StringHelper::replace($column, $this->handle, "{$this->handle}_bunnyStreamMetaData");
-        if (is_array($value)) {
-            $keys = array_keys($value);
-            foreach ($keys as $key) {
-                $query
-                    ->subQuery
-                    ->andWhere(Db::parseParam("JSON_EXTRACT(content.$metaDataColumn, '$.$key')", $value[$key]));
-            }
-        } else {
-            $query
-                ->subQuery
-                ->andWhere(Db::parseParam("content.$column", $value));
-        }
-    }
-
 }
