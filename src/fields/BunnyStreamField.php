@@ -9,6 +9,7 @@ use craft\base\PreviewableFieldInterface;
 use craft\elements\Asset;
 use craft\fieldlayoutelements\Tip;
 use craft\helpers\Html;
+use craft\helpers\Json;
 use craft\web\View;
 use Noo\CraftBunnyStream\models\BunnyStreamFieldAttributes;
 use yii\db\Schema;
@@ -22,12 +23,12 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
 
     public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
     {
-        if (!$value instanceof BunnyStreamFieldAttributes || !$value->bunnyStreamVideoId) {
+        if (!$value instanceof BunnyStreamFieldAttributes || !$value->videoId) {
             $label = Craft::t('bunny-stream', 'Video does not have a Bunny Stream asset');
             $content = '❌';
         } else {
-            $bunnyStreamData = $value->bunnyStreamMetaData ?? [];
-            $status = $bunnyStreamData['status'] ?? null;
+            $metaData = $value->metaData ?? [];
+            $status = $metaData['status'] ?? null;
             if ((int)$status !== 3) {
                 $label = Craft::t('bunny-stream', 'Bunny Stream video is being processed. Stay tuned!');
                 $content = '⏳';
@@ -53,8 +54,8 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
     public static function dbType(): array|string|null
     {
         return [
-            'bunnyStreamVideoId' => Schema::TYPE_STRING,
-            'bunnyStreamMetaData' => Schema::TYPE_TEXT,
+            'videoId' => Schema::TYPE_STRING,
+            'metaData' => Schema::TYPE_TEXT,
         ];
     }
 
@@ -68,10 +69,55 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         if ($value instanceof BunnyStreamFieldAttributes) {
             return $value;
         }
+
+        Craft::info('normalizeValue raw: ' . print_r($value, true), 'bunny-stream');
+
+        if (is_string($value)) {
+            $decoded = Json::decodeIfJson($value);
+            if (is_array($decoded)) {
+                $value = $decoded;
+            } else {
+                // Old single-column format: plain video ID string
+                $value = ['videoId' => $value];
+            }
+        }
+
+        if (!is_array($value)) {
+            $value = [];
+        }
+
+        Craft::info('normalizeValue parsed: ' . print_r($value, true), 'bunny-stream');
+
+        // Handle old column names
+        if (isset($value['bunnyStreamVideoId'])) {
+            $value['videoId'] = $value['bunnyStreamVideoId'];
+            unset($value['bunnyStreamVideoId']);
+        }
+        if (isset($value['bunnyStreamMetaData'])) {
+            $value['metaData'] = $value['bunnyStreamMetaData'];
+            unset($value['bunnyStreamMetaData']);
+        }
+
+        if (isset($value['metaData']) && is_string($value['metaData'])) {
+            $value['metaData'] = Json::decodeIfJson($value['metaData']);
+        }
+
         return Craft::createObject([
             'class' => BunnyStreamFieldAttributes::class,
-            ...($value ?? []),
+            ...$value,
         ]);
+    }
+
+    public function serializeValue(mixed $value, ?ElementInterface $element): ?array
+    {
+        if (!$value instanceof BunnyStreamFieldAttributes) {
+            return null;
+        }
+
+        return [
+            'videoId' => $value->videoId,
+            'metaData' => $value->metaData ? Json::encode($value->metaData) : null,
+        ];
     }
 
     protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
@@ -96,11 +142,10 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         return [];
     }
 
-
     protected function searchKeywords(mixed $value, ElementInterface $element): string
     {
         if ($value instanceof BunnyStreamFieldAttributes) {
-            return $value->bunnyStreamVideoId ?: '';
+            return $value->videoId ?: '';
         }
         return '';
     }

@@ -22,12 +22,12 @@ class BunnyStreamHelper
 
     public static function getBunnyStreamVideoId(?Asset $asset): ?string
     {
-        return self::getBunnyStreamFieldAttributes($asset)?->bunnyStreamVideoId;
+        return self::getBunnyStreamFieldAttributes($asset)?->videoId;
     }
 
     public static function getBunnyStreamData(?Asset $asset): ?array
     {
-        return self::getBunnyStreamFieldAttributes($asset)?->bunnyStreamMetaData;
+        return self::getBunnyStreamFieldAttributes($asset)?->metaData;
     }
 
     public static function getBunnyStreamStatus(?Asset $asset): ?string
@@ -119,8 +119,8 @@ class BunnyStreamHelper
         }
 
         return self::saveBunnyStreamAttributesToAsset($asset, [
-            'bunnyStreamVideoId' => $bunnyStreamVideo['guid'],
-            'bunnyStreamMetaData' => (array)$bunnyStreamVideo,
+            'videoId' => $bunnyStreamVideo['guid'],
+            'metaData' => (array)$bunnyStreamVideo,
         ]);
     }
 
@@ -139,8 +139,8 @@ class BunnyStreamHelper
         $bunnyStreamVideo = BunnyStreamApiHelper::getVideo($bunnyStreamVideoId);
 
         return self::saveBunnyStreamAttributesToAsset($asset, [
-            'bunnyStreamVideoId' => $bunnyStreamVideoId,
-            'bunnyStreamMetaData' => (array)$bunnyStreamVideo,
+            'videoId' => $bunnyStreamVideoId,
+            'metaData' => (array)$bunnyStreamVideo,
         ]);
     }
 
@@ -174,7 +174,7 @@ class BunnyStreamHelper
             return false;
         }
 
-        $bunnyStreamVideoId = self::getBunnyStreamFieldAttributes($asset)?->bunnyStreamVideoId;
+        $bunnyStreamVideoId = self::getBunnyStreamFieldAttributes($asset)?->videoId;
 
         if (!$bunnyStreamVideoId) {
             return false;
