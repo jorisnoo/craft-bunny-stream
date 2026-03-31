@@ -16,6 +16,7 @@ use craft\events\ReplaceAssetEvent;
 use craft\models\FieldLayout;
 use craft\services\Assets;
 use craft\services\Fields;
+use craft\console\Application as ConsoleApplication;
 use craft\web\UrlManager;
 use Noo\CraftBunnyStream\behaviors\BunnyStreamAssetBehavior;
 use Noo\CraftBunnyStream\fields\BunnyStreamField;
@@ -39,6 +40,10 @@ class BunnyStream extends Plugin
     public function init(): void
     {
         parent::init();
+
+        if (Craft::$app instanceof ConsoleApplication) {
+            $this->controllerNamespace = 'Noo\CraftBunnyStream\console\controllers';
+        }
 
         Craft::$app->onInit(function() {
             $this->defineLogTarget();
