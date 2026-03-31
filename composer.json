@@ -19,7 +19,7 @@
         }
     },
     "extra": {
-        "handle": "_bunny-stream",
+        "handle": "bunny-stream",
         "name": "Bunny Stream",
         "developer": "Joris Noordermeer",
         "documentationUrl": "",

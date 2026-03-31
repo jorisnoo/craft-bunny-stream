@@ -3,7 +3,7 @@
 {% macro warning(text) %}
     <p class="warning has-icon">
         <span class="icon" aria-hidden="true"></span>
-        <span class="visually-hidden">{{ 'Warning'|t('_bunny-stream') }}: </span>
+        <span class="visually-hidden">{{ 'Warning'|t('bunny-stream') }}: </span>
         <span>{{ text }}</span>
     </p>
 {% endmacro %}
@@ -11,7 +11,7 @@
 {% macro tip(text) %}
     <p class="notice has-icon">
         <span class="icon" aria-hidden="true"></span>
-        <span class="visually-hidden">{{ 'Warning'|t('_bunny-stream') }}: </span>
+        <span class="visually-hidden">{{ 'Warning'|t('bunny-stream') }}: </span>
         <span>{{ text }}</span>
     </p>
 {% endmacro %}
@@ -28,7 +28,7 @@
             <div data-bunny-fields>
                 {{ forms.copyTextField({
                     id: "bunny-stream-video-id-#{asset.id}",
-                    label: 'Bunny Stream Video ID'|t('_bunny-stream'),
+                    label: 'Bunny Stream Video ID'|t('bunny-stream'),
                     value: asset.bunnyStreamVideoId,
                     class: 'code',
                 }) }}
@@ -37,7 +37,7 @@
             <div data-bunny-fields>
                 {{ forms.copyTextField({
                     id: "bunny-stream-playback-url-#{asset.id}",
-                    label: 'Bunny Stream Playback URL'|t('_bunny-stream'),
+                    label: 'Bunny Stream Playback URL'|t('bunny-stream'),
                     value: asset.bunnyStreamDirectUrl,
                     class: 'code',
                 }) }}
@@ -46,7 +46,7 @@
             <div data-bunny-fields>
                 {{ forms.copyTextField({
                     id: "bunny-stream-hls-url-#{asset.id}",
-                    label: 'Bunny Stream Hls URL'|t('_bunny-stream'),
+                    label: 'Bunny Stream Hls URL'|t('bunny-stream'),
                     value: asset.bunnyStreamHlsUrl,
                     class: 'code',
                 }) }}
@@ -59,13 +59,13 @@
 
             {% if asset.bunnyStreamVideoId %}
 
-                <h3>{{ 'Bunny Stream Asset Data'|t('_bunny-stream') }}</h3>
+                <h3>{{ 'Bunny Stream Asset Data'|t('bunny-stream') }}</h3>
 
                 <div style="max-width:100%;overflow:auto;">
                     {% if asset.bunnyStreamData %}
                         <pre>{{ asset.bunnyStreamData|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</pre>
                     {% else %}
-                        {{ warning('No Bunny Stream data available'|t('_bunny-stream')) }}
+                        {{ warning('No Bunny Stream data available'|t('bunny-stream')) }}
                     {% endif %}
                 </div>
 
@@ -76,7 +76,7 @@
 {#            <div class="flex">#}
 {#                {% if asset.bunnyStreamVideoId %}#}
 {#                    {{ forms.button({#}
-{#                        label: 'Update Mux data'|t('_bunny-stream'),#}
+{#                        label: 'Update Mux data'|t('bunny-stream'),#}
 {#                        spinner: true,#}
 {#                        attributes: {#}
 {#                            'data-update-mux-data-btn': true,#}
@@ -84,7 +84,7 @@
 {#                        }#}
 {#                    }) }}#}
 {#                    {{ forms.button({#}
-{#                        label: 'Delete Mux asset'|t('_bunny-stream'),#}
+{#                        label: 'Delete Mux asset'|t('bunny-stream'),#}
 {#                        spinner: true,#}
 {#                        attributes: {#}
 {#                            'data-delete-mux-asset-btn': true,#}
@@ -94,7 +94,7 @@
 {#                    }) }}#}
 {#                {% endif %}#}
 {#                {{ forms.button({#}
-{#                    label: asset.muxAssetId ? 'Create new Mux asset'|t('_bunny-stream') : 'Create Mux asset'|t('_bunny-stream'),#}
+{#                    label: asset.muxAssetId ? 'Create new Mux asset'|t('bunny-stream') : 'Create Mux asset'|t('bunny-stream'),#}
 {#                    spinner: true,#}
 {#                    attributes: {#}
 {#                        'data-create-mux-asset-btn': true,#}
@@ -152,7 +152,7 @@
 
 {#                Craft.sendActionRequest(#}
 {#                        'POST',#}
-{#                        '_bunny-stream/default/update-data',#}
+{#                        'bunny-stream/default/update-data',#}
 {#                        {#}
 {#                            data: {#}
 {#                                assetId#}
@@ -197,7 +197,7 @@
 
 {#                Craft.sendActionRequest(#}
 {#                        'POST',#}
-{#                        '_bunny-stream/default/delete',#}
+{#                        'bunny-stream/default/delete',#}
 {#                        {#}
 {#                            data: {#}
 {#                                assetId#}
@@ -242,7 +242,7 @@
 
 {#                Craft.sendActionRequest(#}
 {#                    'POST',#}
-{#                    '_bunny-stream/default/create',#}
+{#                    'bunny-stream/default/create',#}
 {#                    {#}
 {#                        data: {#}
 {#                            assetId#}

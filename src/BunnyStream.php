@@ -56,7 +56,7 @@ class BunnyStream extends Plugin
         $logTarget = new FileTarget();
         $logTarget->logFile = Craft::getAlias('@storage/logs/bunny-stream-' . date('Y-m-d') . '.log');
         $logTarget->setLevels(['error', 'warning', 'info']);
-        $logTarget->categories = ['_bunny-stream'];
+        $logTarget->categories = ['bunny-stream'];
         $logTarget->maxFileSize = 10240;
         $logTarget->maxLogFiles = 30;
         $logTarget->logVars = [];
@@ -168,14 +168,14 @@ class BunnyStream extends Plugin
                         foreach ($customFields as $customField) {
                             if ($customField instanceof BunnyStreamField) {
                                 if ($hasBunnyStreamField) {
-                                    $fieldLayout->addError('fields', Craft::t('_bunny-stream', 'Only one BunnyStream field can be added to a single field layout.'));
+                                    $fieldLayout->addError('fields', Craft::t('bunny-stream', 'Only one BunnyStream field can be added to a single field layout.'));
                                     break;
                                 }
                                 $hasBunnyStreamField = true;
                             }
                         }
                         if ($hasBunnyStreamField && $fieldLayout->type !== Asset::class) {
-                            $fieldLayout->addError('fields', Craft::t('_bunny-stream', 'BunnyStream fields are only supported for assets.'));
+                            $fieldLayout->addError('fields', Craft::t('bunny-stream', 'BunnyStream fields are only supported for assets.'));
                         }
                     },
                 ];
@@ -187,7 +187,7 @@ class BunnyStream extends Plugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
             static function(RegisterUrlRulesEvent $event) {
-                $event->rules['bunnystream/webhook'] = '_bunny-stream/webhook';
+                $event->rules['bunnystream/webhook'] = 'bunny-stream/webhook';
             }
         );
     }

@@ -17,22 +17,22 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
 {
     public static function displayName(): string
     {
-        return Craft::t('_bunny-stream', 'Bunny Stream');
+        return Craft::t('bunny-stream', 'Bunny Stream');
     }
 
     public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
     {
         if (!$value instanceof BunnyStreamFieldAttributes || !$value->bunnyStreamVideoId) {
-            $label = Craft::t('_bunny-stream', 'Video does not have a Bunny Stream asset');
+            $label = Craft::t('bunny-stream', 'Video does not have a Bunny Stream asset');
             $content = '❌';
         } else {
             $bunnyStreamData = $value->bunnyStreamMetaData ?? [];
             $status = $bunnyStreamData['status'] ?? null;
             if ((int)$status !== 3) {
-                $label = Craft::t('_bunny-stream', 'Bunny Stream video is being processed. Stay tuned!');
+                $label = Craft::t('bunny-stream', 'Bunny Stream video is being processed. Stay tuned!');
                 $content = '⏳';
             } else {
-                $label = Craft::t('_bunny-stream', 'Bunny Stream video is ready to play!');
+                $label = Craft::t('bunny-stream', 'Bunny Stream video is ready to play!');
                 $content = '👍';
             }
         }
@@ -79,13 +79,13 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         if (!$element instanceof Asset || $element->kind !== Asset::KIND_VIDEO) {
             $warningTip = new Tip([
                 'style' => Tip::STYLE_WARNING,
-                'tip' => Craft::t('_bunny-stream', 'The Bunny Stream field is only designed to work on video assets.'),
+                'tip' => Craft::t('bunny-stream', 'The Bunny Stream field is only designed to work on video assets.'),
             ]);
             return $warningTip->formHtml();
         }
 
         return Craft::$app->getView()->renderTemplate(
-            '_bunny-stream/_components/bunnystream-field-input.twig',
+            'bunny-stream/_components/bunnystream-field-input.twig',
             ['asset' => $element],
             View::TEMPLATE_MODE_CP
         );
