@@ -34,7 +34,7 @@ use yii\log\FileTarget;
  */
 class BunnyStream extends Plugin
 {
-    public string $schemaVersion = '0.0.2';
+    public string $schemaVersion = '0.0.3';
 
     public function init(): void
     {
