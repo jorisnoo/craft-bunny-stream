@@ -62,7 +62,7 @@ class BunnyStreamHelper
         $videoId = self::getBunnyStreamVideoId($asset);
         $libraryId = self::getLibraryId();
 
-        return "https://iframe.mediadelivery.net/embed/{$libraryId}/{$videoId}";
+        return "https://player.mediadelivery.net/embed/{$libraryId}/{$videoId}";
     }
 
     public static function getRelativeThumbnailUrl(Asset $asset): string

@@ -7,8 +7,10 @@ use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\elements\Asset;
+use craft\events\AssetPreviewEvent;
 use craft\events\DefineAssetThumbUrlEvent;
 use craft\events\DefineBehaviorsEvent;
+use craft\events\DefineHtmlEvent;
 use craft\events\DefineRulesEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
@@ -22,6 +24,7 @@ use Noo\CraftBunnyStream\behaviors\BunnyStreamAssetBehavior;
 use Noo\CraftBunnyStream\fields\BunnyStreamField;
 use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
 use Noo\CraftBunnyStream\models\Settings;
+use Noo\CraftBunnyStream\previews\BunnyStreamAssetPreviewHandler;
 
 use yii\base\Event;
 use yii\base\ModelEvent;
@@ -132,6 +135,55 @@ class BunnyStream extends Plugin
                 }
 
                 BunnyStreamHelper::deleteBunnyStreamVideo($asset);
+            }
+        );
+
+        // Register Bunny Stream preview handler for video assets
+        Event::on(
+            Assets::class,
+            Assets::EVENT_REGISTER_PREVIEW_HANDLER,
+            static function(AssetPreviewEvent $event) {
+                if (
+                    $event->asset->kind === Asset::KIND_VIDEO &&
+                    BunnyStreamHelper::getBunnyStreamVideoId($event->asset)
+                ) {
+                    $event->previewHandler = new BunnyStreamAssetPreviewHandler($event->asset);
+                }
+            }
+        );
+
+        // Show Bunny Stream player in the asset editor sidebar
+        Event::on(
+            Asset::class,
+            Element::EVENT_DEFINE_SIDEBAR_HTML,
+            static function(DefineHtmlEvent $event) {
+                /** @var Asset $asset */
+                $asset = $event->sender;
+
+                if (
+                    $asset->kind !== Asset::KIND_VIDEO ||
+                    !BunnyStreamHelper::getBunnyStreamVideoId($asset)
+                ) {
+                    return;
+                }
+
+                $embedUrl = BunnyStreamHelper::getDirectUrl($asset) . '?autoplay=false&preload=metadata';
+                $player = <<<HTML
+                    <div class="meta" style="padding: 0; overflow: hidden;">
+                        <iframe
+                            src="{$embedUrl}"
+                            loading="lazy"
+                            style="border: none; width: 100%; aspect-ratio: 16/9; display: block;"
+                            allow="accelerometer; gyroscope; encrypted-media; picture-in-picture"
+                            allowfullscreen
+                        ></iframe>
+                    </div>
+                    <style>
+                        .preview-thumb-container { display: none !important; }
+                    </style>
+                HTML;
+
+                $event->html = $player . $event->html;
             }
         );
 
