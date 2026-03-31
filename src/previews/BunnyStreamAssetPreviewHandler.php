@@ -9,7 +9,7 @@ class BunnyStreamAssetPreviewHandler extends AssetPreviewHandler
 {
     public function getPreviewHtml(array $variables = []): string
     {
-        $embedUrl = BunnyStreamHelper::getDirectUrl($this->asset) . '?autoplay=false&preload=metadata';
+        $embedUrl = BunnyStreamHelper::getEmbedUrl($this->asset);
 
         return <<<HTML
             <div style="display: flex; align-items: center; justify-content: center; height: 100%; padding: 24px;">

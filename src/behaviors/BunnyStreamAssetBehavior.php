@@ -10,6 +10,11 @@ use yii\base\Behavior;
 
 class BunnyStreamAssetBehavior extends Behavior
 {
+    private function asset(): ?Asset
+    {
+        return $this->owner instanceof Asset ? $this->owner : null;
+    }
+
     public function isBunnyStreamVideo(): bool
     {
         return !empty($this->getBunnyStreamVideoId());
@@ -22,79 +27,56 @@ class BunnyStreamAssetBehavior extends Behavior
 
     public function getBunnyStreamHlsUrl(): ?string
     {
-        if (!$this->owner instanceof Asset) {
-            return null;
-        }
-
-        return BunnyStreamHelper::getHlsUrl($this->owner);
+        return $this->asset() ? BunnyStreamHelper::getHlsUrl($this->asset()) : null;
     }
 
     public function getBunnyStreamThumbnailUrl(bool $relative = false): ?string
     {
-        if (!$this->owner instanceof Asset) {
+        $asset = $this->asset();
+        if (!$asset) {
             return null;
         }
 
         return $relative
-            ? BunnyStreamHelper::getRelativeThumbnailUrl($this->owner)
-            : BunnyStreamHelper::getThumbnailUrl($this->owner);
+            ? BunnyStreamHelper::getRelativeThumbnailUrl($asset)
+            : BunnyStreamHelper::getThumbnailUrl($asset);
     }
 
     public function getBunnyStreamDirectUrl(): ?string
     {
-        if (!$this->owner instanceof Asset) {
-            return null;
-        }
-
-        return BunnyStreamHelper::getDirectUrl($this->owner);
+        return $this->asset() ? BunnyStreamHelper::getDirectUrl($this->asset()) : null;
     }
 
     public function getBunnyStreamVideoId(): ?string
     {
-        if (!$this->owner instanceof Asset) {
-            return null;
-        }
-
-        return BunnyStreamHelper::getBunnyStreamVideoId($this->owner);
+        return $this->asset() ? BunnyStreamHelper::getBunnyStreamVideoId($this->asset()) : null;
     }
 
     public function getBunnyStreamData(): ?array
     {
-        if (!$this->owner instanceof Asset) {
-            return null;
-        }
-
-        return BunnyStreamHelper::getBunnyStreamData($this->owner);
+        return $this->asset() ? BunnyStreamHelper::getBunnyStreamData($this->asset()) : null;
     }
 
     public function getBunnyStreamStatus(): ?string
     {
-        if (!$this->owner instanceof Asset) {
-            return null;
-        }
-
-        return BunnyStreamHelper::getBunnyStreamStatus($this->owner);
+        return $this->asset() ? BunnyStreamHelper::getBunnyStreamStatus($this->asset()) : null;
     }
 
     public function getBunnyStreamAspectRatio(): float|int|null
     {
-        if (!$this->owner instanceof Asset) {
-            return null;
-        }
-
-        $data = BunnyStreamHelper::getBunnyStreamData($this->owner);
+        $data = $this->getBunnyStreamData();
 
         if (empty($data)) {
             return null;
         }
 
-        $width = $data['width'] ?? 0;
-        $height = $data['height'] ?? 0;
+        $width = (int)($data['width'] ?? 0);
+        $height = (int)($data['height'] ?? 0);
 
         if ($width === 0 || $height === 0) {
             return null;
         }
 
-        return (int)$width / (int)$height;
+        return $width / $height;
     }
 }

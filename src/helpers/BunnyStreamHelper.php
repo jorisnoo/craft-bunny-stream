@@ -65,19 +65,32 @@ class BunnyStreamHelper
         return "https://player.mediadelivery.net/embed/{$libraryId}/{$videoId}";
     }
 
-    public static function getRelativeThumbnailUrl(Asset $asset): string
+    public static function getEmbedUrl(Asset $asset): string
+    {
+        return self::getDirectUrl($asset) . '?autoplay=false&preload=metadata';
+    }
+
+    public static function getRelativeThumbnailUrl(Asset $asset): ?string
     {
         $videoId = self::getBunnyStreamVideoId($asset);
-        $thumbnailFileName = self::getBunnyStreamData($asset)['thumbnailFileName'];
+        $thumbnailFileName = self::getBunnyStreamData($asset)['thumbnailFileName'] ?? null;
+
+        if (!$videoId || !$thumbnailFileName) {
+            return null;
+        }
 
         return "/{$videoId}/{$thumbnailFileName}";
     }
 
-    public static function getThumbnailUrl(Asset $asset): string
+    public static function getThumbnailUrl(Asset $asset): ?string
     {
         $videoId = self::getBunnyStreamVideoId($asset);
         $hostname = self::getCdnHostname();
-        $thumbnailFileName = self::getBunnyStreamData($asset)['thumbnailFileName'];
+        $thumbnailFileName = self::getBunnyStreamData($asset)['thumbnailFileName'] ?? null;
+
+        if (!$videoId || !$thumbnailFileName) {
+            return null;
+        }
 
         return "https://{$hostname}/{$videoId}/{$thumbnailFileName}";
     }
@@ -144,28 +157,13 @@ class BunnyStreamHelper
         ]);
     }
 
-    public static function saveBunnyStreamAttributesToAsset(Asset $asset, array $attributes): bool
+    public static function saveBunnyStreamAttributesToAsset(Asset $asset, ?array $attributes): bool
     {
         if (!self::setBunnyStreamFieldAttributes($asset, $attributes)) {
             return false;
         }
 
-        $asset->setScenario(Element::SCENARIO_ESSENTIALS);
-        $asset->resaving = true;
-
-        try {
-            $success = Craft::$app->getElements()->saveElement($asset, false);
-        } catch (Throwable $e) {
-            Craft::error($e, __METHOD__);
-            throw new BunnyException("Unable to save Bunny Stream attributes to asset: " . $e->getMessage());
-        }
-
-        if (!$success) {
-            Craft::error("Unable to save Bunny Stream attributes to asset: " . Json::encode($asset->getErrors()), __METHOD__);
-            throw new BunnyException("Unable to save Bunny Stream attributes to asset: " . Json::encode($asset->getErrors()));
-        }
-
-        return true;
+        return self::saveAsset($asset, $attributes === null ? 'delete' : 'save');
     }
 
     public static function deleteBunnyStreamVideo(?Asset $asset, bool $preserveBunnyStreamVideo = false): bool
@@ -180,22 +178,7 @@ class BunnyStreamHelper
             return false;
         }
 
-        self::setBunnyStreamFieldAttributes($asset, null);
-
-        $asset->setScenario(Element::SCENARIO_ESSENTIALS);
-        $asset->resaving = true;
-
-        try {
-            $success = Craft::$app->getElements()->saveElement($asset, false);
-        } catch (Throwable $e) {
-            Craft::error($e, __METHOD__);
-            throw new BunnyException("Unable to delete Bunny Stream attributes for asset: " . $e->getMessage());
-        }
-
-        if (!$success) {
-            Craft::error("Unable to delete Bunny Stream attributes for asset: " . Json::encode($asset->getErrors()), __METHOD__);
-            throw new BunnyException("Unable to delete Bunny Stream attributes for asset: " . Json::encode($asset->getErrors()));
-        }
+        self::saveBunnyStreamAttributesToAsset($asset, null);
 
         if (!$preserveBunnyStreamVideo) {
             try {
@@ -217,6 +200,27 @@ class BunnyStreamHelper
 
         /** @var BunnyStreamFieldAttributes|null */
         return $asset->{$field->handle} ?? null;
+    }
+
+    private static function saveAsset(Asset $asset, string $action): bool
+    {
+        $asset->setScenario(Element::SCENARIO_ESSENTIALS);
+        $asset->resaving = true;
+
+        try {
+            $success = Craft::$app->getElements()->saveElement($asset, false);
+        } catch (Throwable $e) {
+            Craft::error($e, __METHOD__);
+            throw new BunnyException("Unable to {$action} Bunny Stream attributes for asset: " . $e->getMessage());
+        }
+
+        if (!$success) {
+            $errors = Json::encode($asset->getErrors());
+            Craft::error("Unable to {$action} Bunny Stream attributes for asset: " . $errors, __METHOD__);
+            throw new BunnyException("Unable to {$action} Bunny Stream attributes for asset: " . $errors);
+        }
+
+        return true;
     }
 
     private static function getCdnHostname(): string

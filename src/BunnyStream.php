@@ -167,7 +167,7 @@ class BunnyStream extends Plugin
                     return;
                 }
 
-                $embedUrl = BunnyStreamHelper::getDirectUrl($asset) . '?autoplay=false&preload=metadata';
+                $embedUrl = BunnyStreamHelper::getEmbedUrl($asset);
                 $player = <<<HTML
                     <div class="meta" style="padding: 0; overflow: hidden;">
                         <iframe
@@ -190,23 +190,18 @@ class BunnyStream extends Plugin
         Event::on(
             Assets::class,
             Assets::EVENT_DEFINE_THUMB_URL,
-            function(DefineAssetThumbUrlEvent $event) {
+            static function(DefineAssetThumbUrlEvent $event) {
                 $asset = $event->asset;
-                if (
-                    $asset->kind !== Asset::KIND_VIDEO ||
-                    !BunnyStreamHelper::getBunnyStreamVideoId($asset) ||
-                    BunnyStreamHelper::getBunnyStreamStatus($asset) !== 'finished'
-                ) {
+
+                if ($asset->kind !== Asset::KIND_VIDEO) {
                     return;
                 }
 
                 $url = BunnyStreamHelper::getThumbnailUrl($asset);
 
-                if (empty($url)) {
-                    return;
+                if ($url) {
+                    $event->url = $url;
                 }
-
-                $event->url = $url;
             }
         );
 

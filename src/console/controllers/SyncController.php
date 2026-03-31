@@ -14,27 +14,19 @@ class SyncController extends Controller
 
     public function actionMetadata(): int
     {
-        $assets = Asset::find()
-            ->kind(Asset::KIND_VIDEO)
-            ->all();
-
-        $total = count($assets);
         $synced = 0;
         $skipped = 0;
         $failed = 0;
 
-        $this->stdout("Found {$total} video assets.\n");
-
-        foreach ($assets as $asset) {
+        foreach (Asset::find()->kind(Asset::KIND_VIDEO)->each() as $asset) {
             $videoId = BunnyStreamHelper::getBunnyStreamVideoId($asset);
 
             if (!$videoId) {
-                $this->stdout("  Skipping #{$asset->id} ({$asset->filename}) — no video ID\n");
                 $skipped++;
                 continue;
             }
 
-            $this->stdout("  Syncing #{$asset->id} ({$asset->filename}) — {$videoId} ... ");
+            $this->stdout("  Syncing #{$asset->id} ({$asset->filename}) ... ");
 
             try {
                 BunnyStreamHelper::updateBunnyStreamData($asset);

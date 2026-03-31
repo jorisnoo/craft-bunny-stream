@@ -46,11 +46,6 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         ]);
     }
 
-    protected function defineRules(): array
-    {
-        return array_merge(parent::defineRules(), []);
-    }
-
     public static function dbType(): array|string|null
     {
         return [
@@ -70,23 +65,14 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
             return $value;
         }
 
-        Craft::info('normalizeValue raw: ' . print_r($value, true), 'bunny-stream');
-
         if (is_string($value)) {
             $decoded = Json::decodeIfJson($value);
-            if (is_array($decoded)) {
-                $value = $decoded;
-            } else {
-                // Old single-column format: plain video ID string
-                $value = ['videoId' => $value];
-            }
+            $value = is_array($decoded) ? $decoded : ['videoId' => $value];
         }
 
         if (!is_array($value)) {
             $value = [];
         }
-
-        Craft::info('normalizeValue parsed: ' . print_r($value, true), 'bunny-stream');
 
         // Handle old column names
         if (isset($value['bunnyStreamVideoId'])) {
