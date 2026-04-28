@@ -65,9 +65,23 @@ class BunnyStreamHelper
         return "https://player.mediadelivery.net/embed/{$libraryId}/{$videoId}";
     }
 
-    public static function getEmbedUrl(Asset $asset): string
+    public static function getEmbedUrl(Asset $asset, array $params = []): string
     {
-        return self::getDirectUrl($asset) . '?autoplay=false&preload=metadata';
+        $query = http_build_query([
+            'autoplay' => 'false',
+            'preload' => 'true',
+            'responsive' => 'true',
+            ...$params,
+        ]);
+
+        return self::getDirectUrl($asset) . '?' . $query;
+    }
+
+    public static function getEmbedHtml(Asset $asset, array $params = []): string
+    {
+        $src = self::getEmbedUrl($asset, $params);
+
+        return '<div style="position:relative;padding-top:56.25%;"><iframe src="' . htmlspecialchars($src, ENT_QUOTES) . '" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen></iframe></div>';
     }
 
     public static function getRelativeThumbnailUrl(Asset $asset): ?string

@@ -47,6 +47,16 @@ class BunnyStreamAssetBehavior extends Behavior
         return $this->asset() ? BunnyStreamHelper::getDirectUrl($this->asset()) : null;
     }
 
+    public function getBunnyStreamEmbedUrl(array $params = []): ?string
+    {
+        return $this->asset() ? BunnyStreamHelper::getEmbedUrl($this->asset(), $params) : null;
+    }
+
+    public function getBunnyStreamEmbed(array $params = []): ?string
+    {
+        return $this->asset() ? BunnyStreamHelper::getEmbedHtml($this->asset(), $params) : null;
+    }
+
     public function getBunnyStreamVideoId(): ?string
     {
         return $this->asset() ? BunnyStreamHelper::getBunnyStreamVideoId($this->asset()) : null;
