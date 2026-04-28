@@ -167,7 +167,7 @@ class BunnyStream extends Plugin
                     return;
                 }
 
-                $embedUrl = BunnyStreamHelper::getEmbedUrl($asset);
+                $embedUrl = BunnyStreamHelper::getEmbedUrl($asset, ['preload' => 'metadata']);
                 $player = <<<HTML
                     <div class="meta" style="padding: 0; overflow: hidden;">
                         <iframe
