@@ -128,13 +128,7 @@ class BunnyStreamHelper
 
         if (!$bunnyStreamVideo) {
             try {
-                $assetUrl = self::getAssetUrl($asset);
-
-                if (!$assetUrl) {
-                    throw new BunnyException("Asset ID \"$asset->id\" has no URL");
-                }
-
-                $bunnyStreamVideo = BunnyStreamApiHelper::createVideo($assetUrl);
+                $bunnyStreamVideo = BunnyStreamApiHelper::createVideo($asset);
             } catch (Throwable $e) {
                 Craft::error($e, __METHOD__);
             }
@@ -300,15 +294,5 @@ class BunnyStreamHelper
         }
 
         return self::$bunnyStreamFieldsByVolume[$volumeHandle] ?? null;
-    }
-
-    private static function getAssetUrl(Asset $asset): ?string
-    {
-        if (Craft::$app->env === 'dev') {
-            return null;
-        }
-
-        $url = $asset->getUrl();
-        return str_starts_with($url, 'http') ? $url : null;
     }
 }
