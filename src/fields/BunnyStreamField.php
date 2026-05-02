@@ -11,6 +11,7 @@ use craft\fieldlayoutelements\Tip;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\web\View;
+use Noo\CraftBunnyStream\enums\VideoStatus;
 use Noo\CraftBunnyStream\models\BunnyStreamFieldAttributes;
 use yii\db\Schema;
 
@@ -27,9 +28,8 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
             $label = Craft::t('bunny-stream', 'Video does not have a Bunny Stream asset');
             $content = '❌';
         } else {
-            $metaData = $value->metaData ?? [];
-            $status = $metaData['status'] ?? null;
-            if ((int)$status === 4) {
+            $status = VideoStatus::tryFrom((int)($value->metaData['status'] ?? -1));
+            if ($status === VideoStatus::Finished) {
                 $label = Craft::t('bunny-stream', 'Bunny Stream video is ready to play!');
                 $content = '👍';
             } else {

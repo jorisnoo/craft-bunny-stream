@@ -12,7 +12,6 @@ use Throwable;
 
 class RefreshBunnyStreamMetadataJob extends BaseJob
 {
-    private const TERMINAL_STATUSES = ['finished', 'error', 'uploadFailed'];
     private const MAX_ATTEMPTS = 20;
     private const MAX_DELAY = 300;
     private const BASE_DELAY = 15;
@@ -36,7 +35,7 @@ class RefreshBunnyStreamMetadataJob extends BaseJob
 
         $status = BunnyStreamHelper::getBunnyStreamStatus($asset);
 
-        if (in_array($status, self::TERMINAL_STATUSES, true) || $this->attempt + 1 >= self::MAX_ATTEMPTS) {
+        if (($status?->isTerminal() ?? false) || $this->attempt + 1 >= self::MAX_ATTEMPTS) {
             return;
         }
 

@@ -9,6 +9,7 @@ use craft\elements\Asset;
 use craft\helpers\Json;
 use Illuminate\Support\Collection;
 use Noo\CraftBunnyStream\BunnyStream;
+use Noo\CraftBunnyStream\enums\VideoStatus;
 use Noo\CraftBunnyStream\exceptions\BunnyException;
 use Noo\CraftBunnyStream\fields\BunnyStreamField;
 use Noo\CraftBunnyStream\jobs\RefreshBunnyStreamMetadataJob;
@@ -31,26 +32,15 @@ class BunnyStreamHelper
         return self::getBunnyStreamFieldAttributes($asset)?->metaData;
     }
 
-    public static function getBunnyStreamStatus(?Asset $asset): ?string
+    public static function getBunnyStreamStatus(?Asset $asset): ?VideoStatus
     {
         $data = self::getBunnyStreamData($asset);
 
-        if (!$data) {
+        if (!$data || !isset($data['status'])) {
             return null;
         }
 
-        return match ((int)$data['status']) {
-            0 => 'created',
-            1 => 'uploaded',
-            2 => 'processing',
-            3 => 'transcoding',
-            4 => 'finished',
-            5 => 'error',
-            6 => 'uploadFailed',
-            7 => 'jitSegmenting',
-            8 => 'jitPlaylistsCreated',
-            default => null,
-        };
+        return VideoStatus::tryFrom((int)$data['status']);
     }
 
     public static function getHlsUrl(Asset $asset): string

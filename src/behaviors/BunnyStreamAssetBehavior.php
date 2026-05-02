@@ -4,6 +4,7 @@ namespace Noo\CraftBunnyStream\behaviors;
 
 use craft\elements\Asset;
 
+use Noo\CraftBunnyStream\enums\VideoStatus;
 use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
 
 use yii\base\Behavior;
@@ -22,7 +23,7 @@ class BunnyStreamAssetBehavior extends Behavior
 
     public function isBunnyStreamVideoReady(): bool
     {
-        return $this->getBunnyStreamStatus() === 'finished';
+        return $this->getBunnyStreamStatus() === VideoStatus::Finished;
     }
 
     public function getBunnyStreamHlsUrl(): ?string
@@ -67,7 +68,7 @@ class BunnyStreamAssetBehavior extends Behavior
         return $this->asset() ? BunnyStreamHelper::getBunnyStreamData($this->asset()) : null;
     }
 
-    public function getBunnyStreamStatus(): ?string
+    public function getBunnyStreamStatus(): ?VideoStatus
     {
         return $this->asset() ? BunnyStreamHelper::getBunnyStreamStatus($this->asset()) : null;
     }
