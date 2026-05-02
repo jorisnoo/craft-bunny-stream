@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 use Noo\CraftBunnyStream\BunnyStream;
 use Noo\CraftBunnyStream\exceptions\BunnyException;
 use Noo\CraftBunnyStream\fields\BunnyStreamField;
+use Noo\CraftBunnyStream\jobs\RefreshBunnyStreamMetadataJob;
 use Noo\CraftBunnyStream\models\BunnyStreamFieldAttributes;
 use RuntimeException;
 use Throwable;
@@ -39,12 +40,15 @@ class BunnyStreamHelper
         }
 
         return match ((int)$data['status']) {
-            1 => 'queued',
+            0 => 'created',
+            1 => 'uploaded',
             2 => 'processing',
-            3 => 'encoding',
+            3 => 'transcoding',
             4 => 'finished',
-            5 => 'resolution_finished',
-            6 => 'failed',
+            5 => 'error',
+            6 => 'uploadFailed',
+            7 => 'jitSegmenting',
+            8 => 'jitPlaylistsCreated',
             default => null,
         };
     }
@@ -139,10 +143,16 @@ class BunnyStreamHelper
             return false;
         }
 
-        return self::saveBunnyStreamAttributesToAsset($asset, [
+        $saved = self::saveBunnyStreamAttributesToAsset($asset, [
             'videoId' => $bunnyStreamVideo['guid'],
             'metaData' => (array)$bunnyStreamVideo,
         ]);
+
+        if ($saved) {
+            RefreshBunnyStreamMetadataJob::schedule($asset->id);
+        }
+
+        return $saved;
     }
 
     public static function updateBunnyStreamData(?Asset $asset): bool

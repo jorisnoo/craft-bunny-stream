@@ -12,9 +12,26 @@ class SyncController extends Controller
 {
     public $defaultAction = 'metadata';
 
+    /**
+     * Whether to also create Bunny Stream videos for assets that don't have one yet.
+     */
+    public bool $bootstrap = false;
+
+    public function options($actionID): array
+    {
+        $options = parent::options($actionID);
+
+        if ($actionID === 'metadata') {
+            $options[] = 'bootstrap';
+        }
+
+        return $options;
+    }
+
     public function actionMetadata(): int
     {
         $synced = 0;
+        $created = 0;
         $skipped = 0;
         $failed = 0;
 
@@ -22,7 +39,26 @@ class SyncController extends Controller
             $videoId = BunnyStreamHelper::getBunnyStreamVideoId($asset);
 
             if (!$videoId) {
-                $skipped++;
+                if (!$this->bootstrap) {
+                    $skipped++;
+                    continue;
+                }
+
+                $this->stdout("  Creating Bunny Stream video for #{$asset->id} ({$asset->filename}) ... ");
+
+                try {
+                    if (BunnyStreamHelper::updateOrCreateBunnyStreamAsset($asset)) {
+                        $this->stdout("done\n");
+                        $created++;
+                    } else {
+                        $this->stdout("skipped (no Bunny Stream field on volume)\n");
+                        $skipped++;
+                    }
+                } catch (Throwable $e) {
+                    $this->stderr("failed: {$e->getMessage()}\n");
+                    $failed++;
+                }
+
                 continue;
             }
 
@@ -38,7 +74,7 @@ class SyncController extends Controller
             }
         }
 
-        $this->stdout("\nDone. Synced: {$synced}, Skipped: {$skipped}, Failed: {$failed}\n");
+        $this->stdout("\nDone. Synced: {$synced}, Created: {$created}, Skipped: {$skipped}, Failed: {$failed}\n");
 
         return ExitCode::OK;
     }

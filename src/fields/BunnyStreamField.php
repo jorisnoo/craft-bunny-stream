@@ -29,12 +29,12 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         } else {
             $metaData = $value->metaData ?? [];
             $status = $metaData['status'] ?? null;
-            if ((int)$status !== 3) {
-                $label = Craft::t('bunny-stream', 'Bunny Stream video is being processed. Stay tuned!');
-                $content = '⏳';
-            } else {
+            if ((int)$status === 4) {
                 $label = Craft::t('bunny-stream', 'Bunny Stream video is ready to play!');
                 $content = '👍';
+            } else {
+                $label = Craft::t('bunny-stream', 'Bunny Stream video is being processed. Stay tuned!');
+                $content = '⏳';
             }
         }
         return Html::tag('span', $content, [
