@@ -43,6 +43,11 @@ class BunnyStreamAssetBehavior extends Behavior
             : BunnyStreamHelper::getThumbnailUrl($asset);
     }
 
+    public function getBunnyStreamThumbnailBlurhash(): ?string
+    {
+        return $this->getBunnyStreamData()['thumbnailBlurhash'] ?? null;
+    }
+
     public function getBunnyStreamDirectUrl(): ?string
     {
         return $this->asset() ? BunnyStreamHelper::getDirectUrl($this->asset()) : null;
