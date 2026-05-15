@@ -16,4 +16,7 @@ fix:
 phpstan:
     composer phpstan
 
-check: lint phpstan
+test:
+    composer test
+
+check: lint phpstan test

@@ -27,6 +27,7 @@
     },
     "require-dev": {
         "craftcms/ecs": "dev-main",
+        "pestphp/pest": "^4.0",
         "phpstan/phpstan": "^2.1",
         "roave/security-advisories": "dev-latest"
     },
@@ -36,6 +37,11 @@
     "autoload": {
         "psr-4": {
             "Noo\\CraftBunnyStream\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Noo\\CraftBunnyStream\\Tests\\": "tests/"
         }
     },
     "extra": {
@@ -48,16 +54,18 @@
     "scripts": {
         "check-cs": "ecs check --ansi",
         "fix-cs": "ecs check --ansi --fix",
-        "phpstan": "phpstan --memory-limit=1G"
+        "phpstan": "phpstan --memory-limit=1G",
+        "test": "pest"
     },
     "config": {
         "sort-packages": true,
         "platform": {
-            "php": "8.2"
+            "php": "8.3"
         },
         "allow-plugins": {
             "yiisoft/yii2-composer": true,
-            "craftcms/plugin-installer": true
+            "craftcms/plugin-installer": true,
+            "pestphp/pest-plugin": true
         }
     },
     "minimum-stability": "dev",
