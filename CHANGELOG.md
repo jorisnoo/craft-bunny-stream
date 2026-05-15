@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [1.0.2](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/v1.0.2) (2026-05-15)
+
+### Bug Fixes
+
+- reset focal point when video is replaced ([e197e16](https://github.com/jorisnoo/craft-bunny-stream/commit/e197e16584af18e472b529487f4a16474897dba3))
+
+### Tests
+
+- add pest framework and phpunit configuration ([bebd28d](https://github.com/jorisnoo/craft-bunny-stream/commit/bebd28dd099b501337c054ebd55b815b04572e38))
 ## [1.0.1](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/v1.0.1) (2026-05-15)
 
 ### Features
