@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [1.0.1](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/v1.0.1) (2026-05-15)
+
+### Features
+
+- add Blitz integration for cache management during video encoding ([b204151](https://github.com/jorisnoo/craft-bunny-stream/commit/b2041517b2158e784013686413974216f860af30))
+- add MissingConfigurationException for configuration validation ([2c4138b](https://github.com/jorisnoo/craft-bunny-stream/commit/2c4138b980d2f56866af99033c3ee8b4b36fcbbb))
+
+### Chores
+
+- add justfile with common development tasks ([a6898d3](https://github.com/jorisnoo/craft-bunny-stream/commit/a6898d39afe4cb8b659b69cee283c6f60e8231ec))
+- upgrade phpstan to 2.1 with custom configuration and stubs ([543aa3f](https://github.com/jorisnoo/craft-bunny-stream/commit/543aa3f877f09a4b56f7f5b2909ffa92f24f81a6))
 ## [1.0.0](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/v1.0.0) (2026-05-12)
 
 ### Features
