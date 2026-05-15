@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ada0740ea76e47854a3d2e1437eab9c2",
+    "content-hash": "2c6fcbfb1f1219fd192c532df4484a0f",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -7875,43 +7875,16 @@
             "time": "2024-08-07T21:54:45+00:00"
         },
         {
-            "name": "craftcms/phpstan",
-            "version": "dev-main",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/craftcms/phpstan.git",
-                "reference": "b61bba102b5ec8599406e6e29a28a20c915a6abc"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/craftcms/phpstan/zipball/b61bba102b5ec8599406e6e29a28a20c915a6abc",
-                "reference": "b61bba102b5ec8599406e6e29a28a20c915a6abc",
-                "shasum": ""
-            },
-            "require": {
-                "phpstan/phpstan": "^1.4.6"
-            },
-            "default-branch": true,
-            "type": "library",
-            "notification-url": "https://packagist.org/downloads/",
-            "description": "PHPStan configuration for Craft CMS projects",
-            "support": {
-                "issues": "https://github.com/craftcms/phpstan/issues",
-                "source": "https://github.com/craftcms/phpstan/tree/main"
-            },
-            "time": "2022-04-12T20:50:18+00:00"
-        },
-        {
             "name": "phpstan/phpstan",
-            "version": "1.12.33",
+            "version": "2.1.54",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/37982d6fc7cbb746dda7773530cda557cdf119e1",
-                "reference": "37982d6fc7cbb746dda7773530cda557cdf119e1",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/8be50c3992107dc837b17da4d140fbbdf9a5c5bd",
+                "reference": "8be50c3992107dc837b17da4d140fbbdf9a5c5bd",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.2|^8.0"
+                "php": "^7.4|^8.0"
             },
             "conflict": {
                 "phpstan/phpstan-shim": "*"
@@ -7952,7 +7925,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-02-28T20:30:03+00:00"
+            "time": "2026-04-29T13:31:09+00:00"
         },
         {
             "name": "roave/security-advisories",
@@ -9059,7 +9032,6 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "craftcms/ecs": 20,
-        "craftcms/phpstan": 20,
         "roave/security-advisories": 20
     },
     "prefer-stable": true,

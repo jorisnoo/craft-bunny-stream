@@ -27,7 +27,7 @@
     },
     "require-dev": {
         "craftcms/ecs": "dev-main",
-        "craftcms/phpstan": "dev-main",
+        "phpstan/phpstan": "^2.1",
         "roave/security-advisories": "dev-latest"
     },
     "autoload": {

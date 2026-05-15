@@ -1,7 +1,21 @@
-includes:
-    - vendor/craftcms/phpstan/phpstan.neon
-
 parameters:
     level: 4
     paths:
         - src
+    scanFiles:
+        - vendor/craftcms/cms/src/Craft.php
+        - vendor/craftcms/cms/src/console/Application.php
+        - vendor/craftcms/cms/src/web/Application.php
+        - vendor/yiisoft/yii2/Yii.php
+        - vendor/twig/twig/src/Extension/CoreExtension.php
+    stubFiles:
+        - stubs/BaseYii.stub
+        - stubs/console/Application.stub
+        - stubs/web/Application.stub
+    earlyTerminatingMethodCalls:
+        Craft:
+            - dd
+        yii\base\Application:
+            - end
+        yii\base\ErrorHandler:
+            - convertExceptionToError
