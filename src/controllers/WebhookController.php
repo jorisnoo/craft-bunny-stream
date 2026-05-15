@@ -7,6 +7,7 @@ use craft\elements\Asset;
 use craft\helpers\Json;
 use craft\web\Controller;
 use Noo\CraftBunnyStream\fields\BunnyStreamField;
+use Noo\CraftBunnyStream\helpers\BlitzIntegrationHelper;
 use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
 use yii\web\BadRequestHttpException;
 
@@ -61,7 +62,20 @@ class WebhookController extends Controller
             return true;
         }
 
+        $previousStatus = BunnyStreamHelper::getBunnyStreamStatus($asset);
+
         BunnyStreamHelper::updateBunnyStreamData($asset);
+
+        // If Bunny just finished (or failed) processing, refresh any cached
+        // pages that reference this asset — they were skipped by Blitz while
+        // the video was still processing.
+        $currentStatus = BunnyStreamHelper::getBunnyStreamStatus($asset);
+        $becameTerminal = $currentStatus?->isTerminal()
+            && (!$previousStatus || !$previousStatus->isTerminal());
+
+        if ($becameTerminal) {
+            BlitzIntegrationHelper::refreshCachesForAsset($asset);
+        }
 
         return true;
     }

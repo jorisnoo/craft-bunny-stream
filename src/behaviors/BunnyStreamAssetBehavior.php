@@ -5,6 +5,7 @@ namespace Noo\CraftBunnyStream\behaviors;
 use craft\elements\Asset;
 
 use Noo\CraftBunnyStream\enums\VideoStatus;
+use Noo\CraftBunnyStream\helpers\BlitzIntegrationHelper;
 use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
 
 use yii\base\Behavior;
@@ -76,6 +77,22 @@ class BunnyStreamAssetBehavior extends Behavior
     public function getBunnyStreamStatus(): ?VideoStatus
     {
         return $this->asset() ? BunnyStreamHelper::getBunnyStreamStatus($this->asset()) : null;
+    }
+
+    /**
+     * Prevents Blitz from caching the current request if the video is still
+     * processing on Bunny (non-terminal status). No-op if Blitz isn't installed
+     * or the video is in a terminal state (Finished / Error / UploadFailed).
+     */
+    public function preventBlitzCachingWhileProcessing(): void
+    {
+        $status = $this->getBunnyStreamStatus();
+
+        if ($status === null || $status->isTerminal()) {
+            return;
+        }
+
+        BlitzIntegrationHelper::preventCachingCurrentRequest();
     }
 
     public function getBunnyStreamAspectRatio(): float|int|null

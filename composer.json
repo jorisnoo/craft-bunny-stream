@@ -30,6 +30,9 @@
         "phpstan/phpstan": "^2.1",
         "roave/security-advisories": "dev-latest"
     },
+    "suggest": {
+        "putyourlightson/craft-blitz": "Skips caching pages with still-processing videos and refreshes caches once Bunny finishes encoding."
+    },
     "autoload": {
         "psr-4": {
             "Noo\\CraftBunnyStream\\": "src/"
