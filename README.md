@@ -100,6 +100,8 @@ For video assets that have a Bunny Stream video, the plugin:
 - Replaces the asset thumbnail with the Bunny Stream thumbnail.
 - Shows a status icon in the field's table column (`👍` ready, `⏳` processing, `❌` no video).
 
+The asset's native `focalPoint` is reset whenever the underlying video is replaced, since the new video's framing may differ.
+
 ## Console commands
 
 ```bash

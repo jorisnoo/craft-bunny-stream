@@ -120,6 +120,10 @@ class BunnyStream extends Plugin
                     return;
                 }
 
+                // The new video may have completely different framing, so a
+                // focal point from the old video would point to the wrong spot.
+                $asset->setFocalPoint(null);
+
                 BunnyStreamHelper::deleteBunnyStreamVideo($asset);
             }
         );
