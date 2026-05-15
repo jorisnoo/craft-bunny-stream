@@ -7,6 +7,7 @@ use craft\elements\Asset;
 use craft\helpers\Queue;
 use craft\i18n\Translation;
 use craft\queue\BaseJob;
+use Noo\CraftBunnyStream\exceptions\MissingConfigurationException;
 use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
 use Throwable;
 
@@ -29,6 +30,8 @@ class RefreshBunnyStreamMetadataJob extends BaseJob
 
         try {
             BunnyStreamHelper::updateBunnyStreamData($asset);
+        } catch (MissingConfigurationException $e) {
+            throw $e;
         } catch (Throwable $e) {
             Craft::error($e, __METHOD__);
         }

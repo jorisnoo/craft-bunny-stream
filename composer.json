@@ -2,7 +2,24 @@
     "name": "jorisnoo/craft-bunny-stream",
     "description": "Bunny Stream integration for Craft CMS.",
     "type": "craft-plugin",
+    "authors": [
+        {
+            "name": "Joris Noordermeer",
+            "email": "contact@noordermeer.ch",
+            "homepage": "https://github.com/jorisnoo"
+        }
+    ],
     "license": "MIT",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "bunny",
+        "bunny.net",
+        "video",
+        "streaming"
+    ],
     "require": {
         "php": "^8.2",
         "craftcms/cms": "^5.0",

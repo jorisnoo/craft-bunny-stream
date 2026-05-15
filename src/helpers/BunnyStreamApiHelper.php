@@ -5,6 +5,7 @@ namespace Noo\CraftBunnyStream\helpers;
 use Craft;
 use craft\elements\Asset;
 use Noo\CraftBunnyStream\BunnyStream;
+use Noo\CraftBunnyStream\exceptions\MissingConfigurationException;
 use Noo\CraftBunnyStream\models\Settings;
 use RuntimeException;
 use ToshY\BunnyNet\BunnyHttpClient;
@@ -139,7 +140,7 @@ class BunnyStreamApiHelper
         $libraryId = self::getSettings()->bunnyStreamLibraryId;
 
         if (!$libraryId) {
-            throw new RuntimeException('No Bunny Stream Library ID set');
+            throw new MissingConfigurationException('No Bunny Stream Library ID set');
         }
 
         return (int)$libraryId;
@@ -154,7 +155,7 @@ class BunnyStreamApiHelper
         $settings = self::getSettings();
 
         if (!$settings->bunnyStreamAccessKey || !$settings->bunnyStreamLibraryId) {
-            throw new RuntimeException('No Bunny Stream access key or library ID');
+            throw new MissingConfigurationException('No Bunny Stream access key or library ID');
         }
 
         self::$client = new BunnyHttpClient(

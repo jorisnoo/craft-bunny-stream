@@ -11,10 +11,10 @@ use Illuminate\Support\Collection;
 use Noo\CraftBunnyStream\BunnyStream;
 use Noo\CraftBunnyStream\enums\VideoStatus;
 use Noo\CraftBunnyStream\exceptions\BunnyException;
+use Noo\CraftBunnyStream\exceptions\MissingConfigurationException;
 use Noo\CraftBunnyStream\fields\BunnyStreamField;
 use Noo\CraftBunnyStream\jobs\RefreshBunnyStreamMetadataJob;
 use Noo\CraftBunnyStream\models\BunnyStreamFieldAttributes;
-use RuntimeException;
 use Throwable;
 
 class BunnyStreamHelper
@@ -115,6 +115,8 @@ class BunnyStreamHelper
         if ($bunnyStreamVideoId) {
             try {
                 $bunnyStreamVideo = BunnyStreamApiHelper::getVideo($bunnyStreamVideoId);
+            } catch (MissingConfigurationException $e) {
+                throw $e;
             } catch (Throwable $e) {
                 Craft::error($e, __METHOD__);
             }
@@ -123,6 +125,8 @@ class BunnyStreamHelper
         if (!$bunnyStreamVideo) {
             try {
                 $bunnyStreamVideo = BunnyStreamApiHelper::createVideo($asset);
+            } catch (MissingConfigurationException $e) {
+                throw $e;
             } catch (Throwable $e) {
                 Craft::error($e, __METHOD__);
             }
@@ -191,6 +195,8 @@ class BunnyStreamHelper
         if (!$preserveBunnyStreamVideo) {
             try {
                 BunnyStreamApiHelper::deleteVideo($bunnyStreamVideoId);
+            } catch (MissingConfigurationException $e) {
+                throw $e;
             } catch (Throwable $e) {
                 Craft::error("Unable to delete Bunny Stream video: " . $e->getMessage(), __METHOD__);
             }
@@ -236,7 +242,7 @@ class BunnyStreamHelper
         $hostname = BunnyStream::getInstance()->getSettings()->bunnyStreamCdnHostname;
 
         if (!$hostname) {
-            throw new RuntimeException('No Bunny Stream Hostname set');
+            throw new MissingConfigurationException('No Bunny Stream Hostname set');
         }
 
         return $hostname;
@@ -247,7 +253,7 @@ class BunnyStreamHelper
         $libraryId = BunnyStream::getInstance()->getSettings()->bunnyStreamLibraryId;
 
         if (!$libraryId) {
-            throw new RuntimeException('No Bunny Stream Library ID set');
+            throw new MissingConfigurationException('No Bunny Stream Library ID set');
         }
 
         return $libraryId;
