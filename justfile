@@ -1,22 +1,34 @@
+# List available recipes
 default:
     @just --list
 
+# Install dependencies
 install:
     composer install
 
+# Update dependencies
 update:
     composer update
 
+# Fix code style
 lint:
-    composer check-cs
+    vendor/bin/ecs check --fix
 
-fix:
-    composer fix-cs
+# Check code style without fixing
+lint-check:
+    vendor/bin/ecs check
 
-phpstan:
-    composer phpstan
+# Run static analysis
+analyse:
+    vendor/bin/phpstan analyse --memory-limit=1G
 
+# Run tests
 test:
-    composer test
+    vendor/bin/pest
 
-check: lint phpstan test
+# Run tests with coverage
+test-coverage:
+    vendor/bin/pest --coverage
+
+# Run all checks
+check: lint-check analyse test
