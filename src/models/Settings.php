@@ -11,6 +11,7 @@ class Settings extends Model
     public ?string $bunnyStreamLibraryId = null;
     public ?string $bunnyStreamCdnHostname = null;
     public ?string $bunnyStreamCollectionId = null;
+    public ?string $bunnyStreamWebhookToken = null;
 
     public function init(): void
     {
@@ -20,5 +21,6 @@ class Settings extends Model
         $this->bunnyStreamLibraryId ??= App::env('BUNNY_STREAM_LIBRARY_ID');
         $this->bunnyStreamCdnHostname ??= App::env('BUNNY_STREAM_CDN_HOSTNAME');
         $this->bunnyStreamCollectionId ??= App::env('BUNNY_STREAM_COLLECTION_ID');
+        $this->bunnyStreamWebhookToken ??= App::env('BUNNY_STREAM_WEBHOOK_TOKEN');
     }
 }

@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Security
+
+- require a configured secret token on Bunny Stream webhook requests
+
+### Bug Fixes
+
+- queue Bunny Stream video creation instead of blocking asset-save requests
+
 ## [1.0.2](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/v1.0.2) (2026-05-15)
 
 ### Bug Fixes
