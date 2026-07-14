@@ -7,4 +7,5 @@ return [
     'bunnyStreamLibraryId' => App::env('BUNNY_STREAM_LIBRARY_ID'),
     'bunnyStreamCdnHostname' => App::env('BUNNY_STREAM_CDN_HOSTNAME'),
     'bunnyStreamCollectionId' => App::env('BUNNY_STREAM_COLLECTION_ID'),
+    'bunnyStreamWebhookToken' => App::env('BUNNY_STREAM_WEBHOOK_TOKEN'),
 ];

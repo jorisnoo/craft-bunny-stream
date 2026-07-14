@@ -6,6 +6,7 @@ use Craft;
 use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\console\Application as ConsoleApplication;
 use craft\elements\Asset;
 use craft\events\AssetPreviewEvent;
 use craft\events\DefineAssetThumbUrlEvent;
@@ -18,11 +19,11 @@ use craft\events\ReplaceAssetEvent;
 use craft\models\FieldLayout;
 use craft\services\Assets;
 use craft\services\Fields;
-use craft\console\Application as ConsoleApplication;
 use craft\web\UrlManager;
 use Noo\CraftBunnyStream\behaviors\BunnyStreamAssetBehavior;
 use Noo\CraftBunnyStream\fields\BunnyStreamField;
 use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
+use Noo\CraftBunnyStream\jobs\CreateBunnyStreamVideoJob;
 use Noo\CraftBunnyStream\models\Settings;
 use Noo\CraftBunnyStream\previews\BunnyStreamAssetPreviewHandler;
 
@@ -105,7 +106,7 @@ class BunnyStream extends Plugin
                     return;
                 }
 
-                BunnyStreamHelper::updateOrCreateBunnyStreamAsset($asset);
+                CreateBunnyStreamVideoJob::schedule($asset->id);
             }
         );
 

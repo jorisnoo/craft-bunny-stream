@@ -26,9 +26,11 @@ BUNNY_STREAM_ACCESS_KEY=
 BUNNY_STREAM_LIBRARY_ID=
 BUNNY_STREAM_CDN_HOSTNAME=
 BUNNY_STREAM_COLLECTION_ID=
+BUNNY_STREAM_WEBHOOK_TOKEN=
 ```
 
 `BUNNY_STREAM_COLLECTION_ID` is optional. If set, new videos are created inside that collection.
+`BUNNY_STREAM_WEBHOOK_TOKEN` must be a long, random secret used only to authenticate webhook requests.
 
 ### Config file
 
@@ -42,17 +44,24 @@ return [
     'bunnyStreamLibraryId' => App::env('BUNNY_STREAM_LIBRARY_ID'),
     'bunnyStreamCdnHostname' => App::env('BUNNY_STREAM_CDN_HOSTNAME'),
     'bunnyStreamCollectionId' => App::env('BUNNY_STREAM_COLLECTION_ID'),
+    'bunnyStreamWebhookToken' => App::env('BUNNY_STREAM_WEBHOOK_TOKEN'),
 ];
 ```
 
 ### Webhook
 
-Point a Bunny Stream webhook at `https://your-site.tld/bunnystream/webhook`. The plugin uses the `VideoGuid` in the payload to find the matching asset and refresh its metadata.
+Generate a dedicated secret (for example, with `php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"`) and set it as `BUNNY_STREAM_WEBHOOK_TOKEN`. Then point Bunny Stream at:
+
+```text
+https://your-site.tld/bunnystream/webhook?token=YOUR_URL_ENCODED_TOKEN
+```
+
+Requests without the configured token are rejected before their payload is processed. The plugin uses the `VideoGuid` in an authenticated payload to find the matching asset and refresh its metadata.
 
 ## Setup
 
 1. Create a Bunny Stream field and add it to the field layout of any asset volume that holds video assets. Only one Bunny Stream field per layout is allowed, and the field cannot be added to non-asset layouts.
-2. Upload a video asset to that volume. The plugin creates the Bunny Stream video on save and stores its `videoId` and metadata on the asset.
+2. Upload a video asset to that volume. The plugin queues creation of the Bunny Stream video and stores its `videoId` and metadata on the asset when the job runs.
 3. A queue job (`RefreshBunnyStreamMetadataJob`) polls Bunny Stream with exponential backoff until the video reaches a terminal status (`Finished`, `Error`, or `UploadFailed`).
 
 In production, the plugin asks Bunny Stream to fetch the video over HTTP from the asset's public URL. In `dev` environments, or when an asset has no public URL, the file is uploaded as a binary stream instead.

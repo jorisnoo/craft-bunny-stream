@@ -6,10 +6,13 @@ use Craft;
 use craft\elements\Asset;
 use craft\helpers\Json;
 use craft\web\Controller;
+use Noo\CraftBunnyStream\BunnyStream;
 use Noo\CraftBunnyStream\fields\BunnyStreamField;
 use Noo\CraftBunnyStream\helpers\BlitzIntegrationHelper;
 use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
+use Noo\CraftBunnyStream\helpers\WebhookTokenHelper;
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 
 class WebhookController extends Controller
 {
@@ -24,6 +27,7 @@ class WebhookController extends Controller
     public function actionIndex(): bool
     {
         $this->requirePostRequest();
+        $this->requireValidToken();
 
         $webhookJson = $this->request->getRawBody();
 
@@ -78,5 +82,18 @@ class WebhookController extends Controller
         }
 
         return true;
+    }
+
+    /**
+     * @throws ForbiddenHttpException
+     */
+    private function requireValidToken(): void
+    {
+        $expectedToken = BunnyStream::getInstance()->getSettings()->bunnyStreamWebhookToken;
+        $providedToken = $this->request->getQueryParam('token');
+
+        if (!WebhookTokenHelper::isValid($expectedToken, $providedToken)) {
+            throw new ForbiddenHttpException('Invalid Bunny Stream webhook token.');
+        }
     }
 }
