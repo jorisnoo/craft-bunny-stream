@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [1.1.0](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/v1.1.0) (2026-07-14)
+
+### Features
+
+- require webhook token and queue Bunny Stream video creation ([7970cda](https://github.com/jorisnoo/craft-bunny-stream/commit/7970cda4642b4bd208f9e5f964cb9f8d3b4b2661))
+
+### Bug Fixes
+
+- escape HTML tags in Bunny Stream data output to prevent stored XSS ([be55bbd](https://github.com/jorisnoo/craft-bunny-stream/commit/be55bbdfe356964d850905972c34dd75f6e80eec))
+
+### Build System
+
+- **deps:** bump actions/checkout from 6 to 7 ([991555d](https://github.com/jorisnoo/craft-bunny-stream/commit/991555d772ecaabb9308b6e397613d881e3e9010))
+
+### Chores
+
+- update justfile and stop tracking composer.lock ([ed8606a](https://github.com/jorisnoo/craft-bunny-stream/commit/ed8606a7dfe3a628e983d84d84fb56ec836a5ada))
 ### Security
 
 - require a configured secret token on Bunny Stream webhook requests
