@@ -128,3 +128,7 @@ The plugin writes to `storage/logs/bunny-stream-YYYY-MM-DD.log` under the `bunny
 ## License
 
 MIT. See [LICENSE.md](LICENSE.md).
+
+## Maintainer releases
+
+See [RELEASING.md](RELEASING.md) for versioning, changelog entries and the release command.

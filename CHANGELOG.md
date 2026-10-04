@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [1.1.0](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/v1.1.0) (2026-07-14)
+## [1.1.0](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/1.1.0) (2026-07-14)
 
 ### Features
 
@@ -27,7 +27,7 @@
 
 - queue Bunny Stream video creation instead of blocking asset-save requests
 
-## [1.0.2](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/v1.0.2) (2026-05-15)
+## [1.0.2](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/1.0.2) (2026-05-15)
 
 ### Bug Fixes
 
@@ -36,7 +36,7 @@
 ### Tests
 
 - add pest framework and phpunit configuration ([bebd28d](https://github.com/jorisnoo/craft-bunny-stream/commit/bebd28dd099b501337c054ebd55b815b04572e38))
-## [1.0.1](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/v1.0.1) (2026-05-15)
+## [1.0.1](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/1.0.1) (2026-05-15)
 
 ### Features
 
@@ -47,7 +47,7 @@
 
 - add justfile with common development tasks ([a6898d3](https://github.com/jorisnoo/craft-bunny-stream/commit/a6898d39afe4cb8b659b69cee283c6f60e8231ec))
 - upgrade phpstan to 2.1 with custom configuration and stubs ([543aa3f](https://github.com/jorisnoo/craft-bunny-stream/commit/543aa3f877f09a4b56f7f5b2909ffa92f24f81a6))
-## [1.0.0](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/v1.0.0) (2026-05-12)
+## [1.0.0](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/1.0.0) (2026-05-12)
 
 ### Features
 
