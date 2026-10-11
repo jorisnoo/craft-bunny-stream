@@ -11,6 +11,7 @@ use Noo\CraftBunnyStream\fields\BunnyStreamField;
 use Noo\CraftBunnyStream\helpers\BlitzIntegrationHelper;
 use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
 use Noo\CraftBunnyStream\helpers\WebhookTokenHelper;
+use yii\base\InvalidArgumentException;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 
@@ -35,7 +36,15 @@ class WebhookController extends Controller
             throw new BadRequestHttpException();
         }
 
-        $webhookData = Json::decode($webhookJson);
+        try {
+            $webhookData = Json::decode($webhookJson);
+        } catch (InvalidArgumentException) {
+            throw new BadRequestHttpException('Invalid JSON payload.');
+        }
+
+        if (!is_array($webhookData)) {
+            throw new BadRequestHttpException('Invalid JSON payload.');
+        }
 
         $videoId = $webhookData['VideoGuid'] ?? null;
 
