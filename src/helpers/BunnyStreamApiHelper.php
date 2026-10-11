@@ -62,7 +62,7 @@ class BunnyStreamApiHelper
     private static function fetchVideoFromUrl(string $url): mixed
     {
         $settings = self::getSettings();
-        $libraryId = (int)$settings->bunnyStreamLibraryId;
+        $libraryId = self::getLibraryId();
 
         $query = ['thumbnailTime' => 0];
 
@@ -88,7 +88,7 @@ class BunnyStreamApiHelper
     private static function uploadVideoBinary(Asset $asset): mixed
     {
         $settings = self::getSettings();
-        $libraryId = (int)$settings->bunnyStreamLibraryId;
+        $libraryId = self::getLibraryId();
 
         $createBody = [
             'title' => $asset->filename,
@@ -135,7 +135,10 @@ class BunnyStreamApiHelper
         return BunnyStream::getInstance()->getSettings();
     }
 
-    private static function getLibraryId(): int
+    /**
+     * @throws MissingConfigurationException
+     */
+    public static function getLibraryId(): int
     {
         $libraryId = self::getSettings()->bunnyStreamLibraryId;
 

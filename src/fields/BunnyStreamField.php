@@ -17,6 +17,11 @@ use yii\db\Schema;
 
 class BunnyStreamField extends Field implements PreviewableFieldInterface
 {
+    /**
+     * Bunny Stream video IDs are GUIDs.
+     */
+    public const VIDEO_ID_PATTERN = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
+
     public static function displayName(): string
     {
         return Craft::t('bunny-stream', 'Bunny Stream');
@@ -88,10 +93,30 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
             $value['metaData'] = Json::decodeIfJson($value['metaData']);
         }
 
+        // Discard anything that isn't a Bunny Stream GUID
+        if (isset($value['videoId']) && (!is_string($value['videoId']) || !preg_match(self::VIDEO_ID_PATTERN, $value['videoId']))) {
+            $value['videoId'] = null;
+        }
+
+        if (isset($value['metaData']) && !is_array($value['metaData'])) {
+            $value['metaData'] = null;
+        }
+
+        $value = array_intersect_key($value, ['videoId' => true, 'metaData' => true]);
+
         return Craft::createObject([
             'class' => BunnyStreamFieldAttributes::class,
             ...$value,
         ]);
+    }
+
+    /**
+     * The Bunny Stream attributes are managed by the plugin only, so values
+     * submitted via the request are ignored and the stored value is kept.
+     */
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
+    {
+        return $element ? $element->getFieldValue($this->handle) : $this->normalizeValue(null, null);
     }
 
     public function serializeValue(mixed $value, ?ElementInterface $element): ?array

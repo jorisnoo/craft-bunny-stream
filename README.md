@@ -61,12 +61,14 @@ Requests without the configured token are rejected before their payload is proce
 ## Setup
 
 1. Create a Bunny Stream field and add it to the field layout of any asset volume that holds video assets. Only one Bunny Stream field per layout is allowed, and the field cannot be added to non-asset layouts.
-2. Upload a video asset to that volume. The plugin queues creation of the Bunny Stream video and stores its `videoId` and metadata on the asset when the job runs.
+2. Upload a video asset to that volume. Videos in volumes without a Bunny Stream field are never sent to Bunny. The plugin queues creation of the Bunny Stream video and stores its `videoId` and metadata on the asset when the job runs.
 3. A queue job (`RefreshBunnyStreamMetadataJob`) polls Bunny Stream with exponential backoff until the video reaches a terminal status (`Finished`, `Error`, or `UploadFailed`).
 
 In production, the plugin asks Bunny Stream to fetch the video over HTTP from the asset's public URL. In `dev` environments, or when an asset has no public URL, the file is uploaded as a binary stream instead.
 
-Replacing or deleting an asset deletes the corresponding Bunny Stream video.
+Replacing or deleting an asset deletes the corresponding Bunny Stream video. The video is kept only when an asset is soft-deleted while keeping its file (e.g. missing-file cleanup during asset indexing), since Craft can restore such assets.
+
+The field's values are managed by the plugin only: values submitted through the control panel or front-end forms are ignored, and video IDs that are not Bunny Stream GUIDs are discarded.
 
 ## Twig API
 
@@ -91,10 +93,10 @@ A behavior is attached to all `craft\elements\Asset` elements:
 | `getBunnyStreamVideoId()` | The Bunny Stream `guid` |
 | `getBunnyStreamStatus()` | A `VideoStatus` enum case |
 | `getBunnyStreamData()` | The full metadata array from Bunny Stream |
-| `getBunnyStreamHlsUrl()` | HLS playlist URL on the configured CDN hostname |
-| `getBunnyStreamDirectUrl()` | The `player.mediadelivery.net` embed URL |
-| `getBunnyStreamEmbedUrl(params)` | Embed URL with query params merged in |
-| `getBunnyStreamEmbed(params)` | Responsive `<iframe>` embed HTML |
+| `getBunnyStreamHlsUrl()` | HLS playlist URL on the configured CDN hostname, or `null` |
+| `getBunnyStreamDirectUrl()` | The `player.mediadelivery.net` embed URL, or `null` |
+| `getBunnyStreamEmbedUrl(params)` | Embed URL with query params merged in, or `null` |
+| `getBunnyStreamEmbed(params)` | Responsive `<iframe>` embed HTML, or `null` |
 | `getBunnyStreamThumbnailUrl(relative)` | Thumbnail URL (or path-only when `relative` is true) |
 | `getBunnyStreamAspectRatio()` | Width / height as a float, or `null` |
 
@@ -118,6 +120,7 @@ The asset's native `focalPoint` is reset whenever the underlying video is replac
 php craft bunny-stream/sync/metadata
 
 # Also create Bunny Stream videos for assets that don't have one yet
+# (only in volumes with a Bunny Stream field)
 php craft bunny-stream/sync/metadata --bootstrap
 ```
 

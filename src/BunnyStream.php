@@ -16,6 +16,7 @@ use craft\events\DefineRulesEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\ReplaceAssetEvent;
+use craft\helpers\Html;
 use craft\models\FieldLayout;
 use craft\services\Assets;
 use craft\services\Fields;
@@ -101,6 +102,7 @@ class BunnyStream extends Plugin
                 if (
                     $asset->resaving ||
                     $asset->kind !== Asset::KIND_VIDEO ||
+                    !BunnyStreamHelper::getBunnyStreamFieldForAsset($asset) ||
                     BunnyStreamHelper::getBunnyStreamVideoId($asset)
                 ) {
                     return;
@@ -129,17 +131,22 @@ class BunnyStream extends Plugin
             }
         );
 
-        // Delete Bunny Stream video when videos are deleted
+        // Delete Bunny Stream video when videos are deleted. Assets soft-deleted
+        // with their file kept can be restored, so they keep their video too.
         Event::on(
             Asset::class,
             Element::EVENT_AFTER_DELETE,
             static function(Event $event) {
+                /** @var Asset $asset */
                 $asset = $event->sender;
-                if ($asset->kind !== Asset::KIND_VIDEO) {
+                if (
+                    $asset->kind !== Asset::KIND_VIDEO ||
+                    (!$asset->hardDelete && $asset->keepFileOnDelete)
+                ) {
                     return;
                 }
 
-                BunnyStreamHelper::deleteBunnyStreamVideo($asset);
+                BunnyStreamHelper::deleteBunnyStreamVideo($asset, saveAsset: false);
             }
         );
 
@@ -172,21 +179,18 @@ class BunnyStream extends Plugin
                     return;
                 }
 
-                $embedUrl = BunnyStreamHelper::getEmbedUrl($asset, ['preload' => 'metadata']);
-                $player = <<<HTML
-                    <div class="meta" style="padding: 0; overflow: hidden;">
-                        <iframe
-                            src="{$embedUrl}"
-                            loading="lazy"
-                            style="border: none; width: 100%; aspect-ratio: 16/9; display: block;"
-                            allow="accelerometer; gyroscope; encrypted-media; picture-in-picture"
-                            allowfullscreen
-                        ></iframe>
-                    </div>
-                    <style>
-                        .preview-thumb-container { display: none !important; }
-                    </style>
-                HTML;
+                $iframe = BunnyStreamHelper::getIframeHtml($asset, ['preload' => 'metadata'], [
+                    'style' => 'border: none; width: 100%; aspect-ratio: 16/9; display: block;',
+                ]);
+
+                if (!$iframe) {
+                    return;
+                }
+
+                $player = Html::tag('div', $iframe, [
+                    'class' => 'meta',
+                    'style' => 'padding: 0; overflow: hidden;',
+                ]) . '<style>.preview-thumb-container { display: none !important; }</style>';
 
                 $event->html = $player . $event->html;
             }

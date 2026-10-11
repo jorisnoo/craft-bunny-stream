@@ -6,6 +6,7 @@ use Craft;
 use craft\base\Element;
 use craft\base\FieldInterface;
 use craft\elements\Asset;
+use craft\helpers\Html;
 use craft\helpers\Json;
 use Illuminate\Support\Collection;
 use Noo\CraftBunnyStream\BunnyStream;
@@ -43,24 +44,40 @@ class BunnyStreamHelper
         return VideoStatus::tryFrom((int)$data['status']);
     }
 
-    public static function getHlsUrl(Asset $asset): string
+    public static function getHlsUrl(Asset $asset): ?string
     {
         $videoId = self::getBunnyStreamVideoId($asset);
+
+        if (!$videoId) {
+            return null;
+        }
+
         $hostname = self::getCdnHostname();
 
-        return "https://{$hostname}/{$videoId}/playlist.m3u8";
+        return "https://{$hostname}/" . rawurlencode($videoId) . '/playlist.m3u8';
     }
 
-    public static function getDirectUrl(Asset $asset): string
+    public static function getDirectUrl(Asset $asset): ?string
     {
         $videoId = self::getBunnyStreamVideoId($asset);
-        $libraryId = self::getLibraryId();
 
-        return "https://player.mediadelivery.net/embed/{$libraryId}/{$videoId}";
+        if (!$videoId) {
+            return null;
+        }
+
+        $libraryId = BunnyStreamApiHelper::getLibraryId();
+
+        return "https://player.mediadelivery.net/embed/{$libraryId}/" . rawurlencode($videoId);
     }
 
-    public static function getEmbedUrl(Asset $asset, array $params = []): string
+    public static function getEmbedUrl(Asset $asset, array $params = []): ?string
     {
+        $directUrl = self::getDirectUrl($asset);
+
+        if (!$directUrl) {
+            return null;
+        }
+
         $query = http_build_query([
             'autoplay' => 'false',
             'preload' => 'true',
@@ -68,14 +85,43 @@ class BunnyStreamHelper
             ...$params,
         ]);
 
-        return self::getDirectUrl($asset) . '?' . $query;
+        return $directUrl . '?' . $query;
     }
 
-    public static function getEmbedHtml(Asset $asset, array $params = []): string
+    public static function getEmbedHtml(Asset $asset, array $params = []): ?string
+    {
+        $iframe = self::getIframeHtml($asset, $params, [
+            'style' => 'border:0;position:absolute;top:0;height:100%;width:100%;',
+        ]);
+
+        if (!$iframe) {
+            return null;
+        }
+
+        return Html::tag('div', $iframe, ['style' => 'position:relative;padding-top:56.25%;']);
+    }
+
+    /**
+     * Returns an escaped `<iframe>` tag for the asset's Bunny Stream player.
+     *
+     * @param array $params Player query parameters
+     * @param array $options Extra iframe attributes (merged over the defaults)
+     */
+    public static function getIframeHtml(Asset $asset, array $params = [], array $options = []): ?string
     {
         $src = self::getEmbedUrl($asset, $params);
 
-        return '<div style="position:relative;padding-top:56.25%;"><iframe src="' . htmlspecialchars($src, ENT_QUOTES) . '" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen></iframe></div>';
+        if (!$src) {
+            return null;
+        }
+
+        return Html::tag('iframe', '', [
+            'src' => $src,
+            'loading' => 'lazy',
+            'allow' => 'accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;',
+            'allowfullscreen' => true,
+            ...$options,
+        ]);
     }
 
     public static function getRelativeThumbnailUrl(Asset $asset): ?string
@@ -87,60 +133,65 @@ class BunnyStreamHelper
             return null;
         }
 
-        return "/{$videoId}/{$thumbnailFileName}";
+        return '/' . rawurlencode($videoId) . '/' . rawurlencode($thumbnailFileName);
     }
 
     public static function getThumbnailUrl(Asset $asset): ?string
     {
-        $videoId = self::getBunnyStreamVideoId($asset);
-        $hostname = self::getCdnHostname();
-        $thumbnailFileName = self::getBunnyStreamData($asset)['thumbnailFileName'] ?? null;
+        $relativeUrl = self::getRelativeThumbnailUrl($asset);
 
-        if (!$videoId || !$thumbnailFileName) {
+        if (!$relativeUrl) {
             return null;
         }
 
-        return "https://{$hostname}/{$videoId}/{$thumbnailFileName}";
+        return 'https://' . self::getCdnHostname() . $relativeUrl;
     }
 
+    /**
+     * Creates a Bunny Stream video for an asset that doesn't have one yet,
+     * or refreshes the metadata of an existing one.
+     *
+     * Returns false without contacting Bunny if the asset's volume has no
+     * Bunny Stream field.
+     */
     public static function updateOrCreateBunnyStreamAsset(?Asset $asset): bool
     {
-        if (!$asset) {
+        if (!$asset || !self::getBunnyStreamFieldForAsset($asset)) {
             return false;
         }
 
-        $bunnyStreamVideoId = self::getBunnyStreamVideoId($asset);
-        $bunnyStreamVideo = null;
-
-        if ($bunnyStreamVideoId) {
-            try {
-                $bunnyStreamVideo = BunnyStreamApiHelper::getVideo($bunnyStreamVideoId);
-            } catch (MissingConfigurationException $e) {
-                throw $e;
-            } catch (Throwable $e) {
-                Craft::error($e, __METHOD__);
-            }
+        if (self::getBunnyStreamVideoId($asset)) {
+            return self::updateBunnyStreamData($asset);
         }
 
-        if (!$bunnyStreamVideo) {
-            try {
-                $bunnyStreamVideo = BunnyStreamApiHelper::createVideo($asset);
-            } catch (MissingConfigurationException $e) {
-                throw $e;
-            } catch (Throwable $e) {
-                Craft::error($e, __METHOD__);
-            }
-        }
-
-        if (!$bunnyStreamVideo) {
-            self::deleteBunnyStreamVideo($asset);
+        try {
+            $bunnyStreamVideo = BunnyStreamApiHelper::createVideo($asset);
+        } catch (MissingConfigurationException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            Craft::error($e, __METHOD__);
             return false;
         }
 
-        $saved = self::saveBunnyStreamAttributesToAsset($asset, [
-            'videoId' => $bunnyStreamVideo['guid'],
-            'metaData' => (array)$bunnyStreamVideo,
-        ]);
+        if (!$bunnyStreamVideo) {
+            return false;
+        }
+
+        try {
+            $saved = self::saveBunnyStreamAttributesToAsset($asset, [
+                'videoId' => $bunnyStreamVideo['guid'],
+                'metaData' => (array)$bunnyStreamVideo,
+            ]);
+        } catch (Throwable $e) {
+            // Don't leave an orphaned video on Bunny if we couldn't store its ID
+            try {
+                BunnyStreamApiHelper::deleteVideo($bunnyStreamVideo['guid']);
+            } catch (Throwable $deleteError) {
+                Craft::error("Unable to delete orphaned Bunny Stream video: " . $deleteError->getMessage(), __METHOD__);
+            }
+
+            throw $e;
+        }
 
         if ($saved) {
             RefreshBunnyStreamMetadataJob::schedule($asset->id);
@@ -161,11 +212,16 @@ class BunnyStreamHelper
             return false;
         }
 
-        $bunnyStreamVideo = BunnyStreamApiHelper::getVideo($bunnyStreamVideoId);
+        $metaData = (array)BunnyStreamApiHelper::getVideo($bunnyStreamVideoId);
+
+        // Skip the (expensive) element save when nothing changed
+        if ($metaData == self::getBunnyStreamData($asset)) {
+            return true;
+        }
 
         return self::saveBunnyStreamAttributesToAsset($asset, [
             'videoId' => $bunnyStreamVideoId,
-            'metaData' => (array)$bunnyStreamVideo,
+            'metaData' => $metaData,
         ]);
     }
 
@@ -178,7 +234,11 @@ class BunnyStreamHelper
         return self::saveAsset($asset, $attributes === null ? 'delete' : 'save');
     }
 
-    public static function deleteBunnyStreamVideo(?Asset $asset, bool $preserveBunnyStreamVideo = false): bool
+    /**
+     * @param bool $saveAsset Whether to clear the Bunny Stream attributes on the asset and save it.
+     *                        Pass false when the asset itself is being deleted.
+     */
+    public static function deleteBunnyStreamVideo(?Asset $asset, bool $preserveBunnyStreamVideo = false, bool $saveAsset = true): bool
     {
         if (!$asset) {
             return false;
@@ -190,7 +250,9 @@ class BunnyStreamHelper
             return false;
         }
 
-        self::saveBunnyStreamAttributesToAsset($asset, null);
+        if ($saveAsset) {
+            self::saveBunnyStreamAttributesToAsset($asset, null);
+        }
 
         if (!$preserveBunnyStreamVideo) {
             try {
@@ -248,17 +310,6 @@ class BunnyStreamHelper
         return $hostname;
     }
 
-    private static function getLibraryId(): string
-    {
-        $libraryId = BunnyStream::getInstance()->getSettings()->bunnyStreamLibraryId;
-
-        if (!$libraryId) {
-            throw new MissingConfigurationException('No Bunny Stream Library ID set');
-        }
-
-        return $libraryId;
-    }
-
     private static function setBunnyStreamFieldAttributes(?Asset $asset, ?array $attributes = null): bool
     {
         if (!$asset) {
@@ -276,7 +327,7 @@ class BunnyStreamHelper
         return true;
     }
 
-    private static function getBunnyStreamFieldForAsset(?Asset $asset): ?BunnyStreamField
+    public static function getBunnyStreamFieldForAsset(?Asset $asset): ?BunnyStreamField
     {
         if (!$asset || $asset->kind !== Asset::KIND_VIDEO) {
             return null;
@@ -285,7 +336,7 @@ class BunnyStreamHelper
         try {
             $volumeHandle = $asset->getVolume()->handle;
 
-            if (isset(self::$bunnyStreamFieldsByVolume[$volumeHandle])) {
+            if (array_key_exists($volumeHandle, self::$bunnyStreamFieldsByVolume)) {
                 return self::$bunnyStreamFieldsByVolume[$volumeHandle];
             }
 
