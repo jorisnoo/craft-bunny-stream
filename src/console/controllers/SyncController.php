@@ -2,8 +2,10 @@
 
 namespace Noo\CraftBunnyStream\console\controllers;
 
+use Craft;
 use craft\console\Controller;
 use craft\elements\Asset;
+use craft\elements\db\AssetQuery;
 use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
 use Throwable;
 use yii\console\ExitCode;
@@ -35,7 +37,9 @@ class SyncController extends Controller
         $skipped = 0;
         $failed = 0;
 
-        foreach (Asset::find()->kind(Asset::KIND_VIDEO)->each() as $asset) {
+        /** @var AssetQuery $query */
+        $query = Craft::$app->getElements()->createElementQuery(Asset::class);
+        foreach ($query->kind(Asset::KIND_VIDEO)->each() as $asset) {
             $videoId = BunnyStreamHelper::getBunnyStreamVideoId($asset);
 
             if (!$videoId) {
@@ -65,7 +69,11 @@ class SyncController extends Controller
             $this->stdout("  Syncing #{$asset->id} ({$asset->filename}) ... ");
 
             try {
-                BunnyStreamHelper::updateBunnyStreamData($asset);
+                if (!BunnyStreamHelper::updateBunnyStreamData($asset)) {
+                    $this->stdout("skipped (video link no longer present)\n");
+                    $skipped++;
+                    continue;
+                }
                 $this->stdout("done\n");
                 $synced++;
             } catch (Throwable $e) {
@@ -76,6 +84,6 @@ class SyncController extends Controller
 
         $this->stdout("\nDone. Synced: {$synced}, Created: {$created}, Skipped: {$skipped}, Failed: {$failed}\n");
 
-        return ExitCode::OK;
+        return $failed > 0 ? ExitCode::UNSPECIFIED_ERROR : ExitCode::OK;
     }
 }

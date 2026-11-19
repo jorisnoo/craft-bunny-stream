@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-19
+
+### Fixed
+
+- Treat Bunny IDs and metadata as server-managed. Control-panel preview and playback helpers safely render only linked videos; volumes without a Bunny Stream field are left alone.
+- Queue remote work outside asset transactions. File replacement creates a fresh video, deletion no longer re-saves deleted assets, and concurrent workers cannot upload the same asset twice. Transfer failures are visible and partial uploads are cleaned up.
+- Refresh metadata and affected Blitz pages in the queue, including pages that use a video in Matrix. Poll long-running encodes beyond the initial fast polling window.
+- Restore Craft 5 status icons, convert legacy Craft 5 field content for webhook lookups, and return an error from the metadata command when a sync fails.
+
+### Upgrading
+
+- Run Craft’s migrations before resuming queue workers. Existing linked videos continue to play and sync, but cannot be safely identified as plugin-owned. Replacing or deleting a legacy asset leaves its old remote video for manual review.
+
 ## [1.1.0](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/1.1.0) (2026-07-14)
 
 ### Features
@@ -11,6 +24,7 @@
 ### Bug Fixes
 
 - escape HTML tags in Bunny Stream data output to prevent stored XSS ([be55bbd](https://github.com/jorisnoo/craft-bunny-stream/commit/be55bbdfe356964d850905972c34dd75f6e80eec))
+- queue Bunny Stream video creation instead of blocking asset-save requests
 
 ### Build System
 
@@ -19,13 +33,10 @@
 ### Chores
 
 - update justfile and stop tracking composer.lock ([ed8606a](https://github.com/jorisnoo/craft-bunny-stream/commit/ed8606a7dfe3a628e983d84d84fb56ec836a5ada))
-### Security
 
-- require a configured secret token on Bunny Stream webhook requests
+### Upgrading
 
-### Bug Fixes
-
-- queue Bunny Stream video creation instead of blocking asset-save requests
+- Webhooks now require a dedicated secret. Set `BUNNY_STREAM_WEBHOOK_TOKEN` and update the URL in your Bunny library to `https://your-site.tld/bunnystream/webhook?token=YOUR_URL_ENCODED_TOKEN`. Requests using the old URL receive HTTP 403.
 
 ## [1.0.2](https://github.com/jorisnoo/craft-bunny-stream/releases/tag/1.0.2) (2026-05-15)
 

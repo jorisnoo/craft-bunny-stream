@@ -2,15 +2,14 @@
 
 namespace Noo\CraftBunnyStream\controllers;
 
-use Craft;
-use craft\elements\Asset;
 use craft\helpers\Json;
+use craft\helpers\Queue;
 use craft\web\Controller;
 use Noo\CraftBunnyStream\BunnyStream;
-use Noo\CraftBunnyStream\fields\BunnyStreamField;
-use Noo\CraftBunnyStream\helpers\BlitzIntegrationHelper;
-use Noo\CraftBunnyStream\helpers\BunnyStreamHelper;
 use Noo\CraftBunnyStream\helpers\WebhookTokenHelper;
+use Noo\CraftBunnyStream\jobs\RefreshBunnyStreamMetadataJob;
+use Noo\CraftBunnyStream\models\BunnyStreamFieldAttributes;
+use yii\base\InvalidArgumentException;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 
@@ -29,57 +28,18 @@ class WebhookController extends Controller
         $this->requirePostRequest();
         $this->requireValidToken();
 
-        $webhookJson = $this->request->getRawBody();
-
-        if (empty($webhookJson)) {
-            throw new BadRequestHttpException();
+        try {
+            $payload = Json::decode($this->request->getRawBody());
+        } catch (InvalidArgumentException) {
+            throw new BadRequestHttpException('Invalid JSON payload.');
         }
 
-        $webhookData = Json::decode($webhookJson);
-
-        $videoId = $webhookData['VideoGuid'] ?? null;
-
-        Craft::info("Bunny Stream webhook triggered for video \"$videoId\"", __METHOD__);
-
-        if (!$videoId) {
-            Craft::info("Webhook failed, no Bunny asset ID found in payload for event \"$webhookJson\"", __METHOD__);
-            return false;
+        $videoId = is_array($payload) ? BunnyStreamFieldAttributes::normalizeVideoId($payload['VideoGuid'] ?? null) : null;
+        if ($videoId === null) {
+            throw new BadRequestHttpException('A valid VideoGuid is required.');
         }
 
-        // Get the asset
-        // To quote Værsågod: This is a bit awkward, because we have to go via the MuxMate fields
-        // (we can't know which field to query on, in cases where there are multiple volumes w/ multiple different MuxMate fields in their layouts)
-        $asset = null;
-        $bunnyStreamFields = Craft::$app->getFields()->getFieldsByType(BunnyStreamField::class, 'global');
-        foreach ($bunnyStreamFields as $bunnyStreamField) {
-            $bunnyStreamFieldHandle = $bunnyStreamField->handle;
-            $asset = Asset::find()
-                ->kind(Asset::KIND_VIDEO)
-                ->$bunnyStreamFieldHandle($videoId)
-                ->one();
-            if ($asset) {
-                break;
-            }
-        }
-
-        if (!$asset) {
-            return true;
-        }
-
-        $previousStatus = BunnyStreamHelper::getBunnyStreamStatus($asset);
-
-        BunnyStreamHelper::updateBunnyStreamData($asset);
-
-        // If Bunny just finished (or failed) processing, refresh any cached
-        // pages that reference this asset — they were skipped by Blitz while
-        // the video was still processing.
-        $currentStatus = BunnyStreamHelper::getBunnyStreamStatus($asset);
-        $becameTerminal = $currentStatus?->isTerminal()
-            && (!$previousStatus || !$previousStatus->isTerminal());
-
-        if ($becameTerminal) {
-            BlitzIntegrationHelper::refreshCachesForAsset($asset);
-        }
+        Queue::push(new RefreshBunnyStreamMetadataJob(['videoId' => $videoId]));
 
         return true;
     }

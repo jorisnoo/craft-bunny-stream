@@ -7,6 +7,7 @@ use craft\base\ElementInterface;
 use craft\base\Field;
 use craft\base\PreviewableFieldInterface;
 use craft\elements\Asset;
+use craft\errors\InvalidFieldException;
 use craft\fieldlayoutelements\Tip;
 use craft\helpers\Html;
 use craft\helpers\Json;
@@ -22,7 +23,13 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         return Craft::t('bunny-stream', 'Bunny Stream');
     }
 
-    public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
+    public static function supportedTranslationMethods(): array
+    {
+        // Every site represents the same physical file and must share its Bunny link.
+        return [self::TRANSLATION_METHOD_NONE];
+    }
+
+    public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
         if (!$value instanceof BunnyStreamFieldAttributes || !$value->videoId) {
             $label = Craft::t('bunny-stream', 'Video does not have a Bunny Stream asset');
@@ -51,6 +58,8 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         return [
             'videoId' => Schema::TYPE_STRING,
             'metaData' => Schema::TYPE_TEXT,
+            'ownershipProof' => Schema::TYPE_STRING,
+            'generation' => Schema::TYPE_STRING,
         ];
     }
 
@@ -59,39 +68,52 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         return true;
     }
 
-    public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
+    public function normalizeValue(mixed $value, ?ElementInterface $element): BunnyStreamFieldAttributes
     {
         if ($value instanceof BunnyStreamFieldAttributes) {
+            $value->videoId = BunnyStreamFieldAttributes::normalizeVideoId($value->videoId);
             return $value;
         }
 
         if (is_string($value)) {
-            $decoded = Json::decodeIfJson($value);
-            $value = is_array($decoded) ? $decoded : ['videoId' => $value];
+            $value = Json::decodeIfJson($value);
+            if (is_string($value)) {
+                $value = ['videoId' => $value];
+            }
         }
 
         if (!is_array($value)) {
             $value = [];
         }
 
-        // Handle old column names
-        if (isset($value['bunnyStreamVideoId'])) {
-            $value['videoId'] = $value['bunnyStreamVideoId'];
-            unset($value['bunnyStreamVideoId']);
-        }
-        if (isset($value['bunnyStreamMetaData'])) {
-            $value['metaData'] = $value['bunnyStreamMetaData'];
-            unset($value['bunnyStreamMetaData']);
+        // Prefer current keys, even if explicitly cleared in a partially migrated value.
+        $videoId = array_key_exists('videoId', $value) ? $value['videoId'] : ($value['bunnyStreamVideoId'] ?? null);
+        $metaData = array_key_exists('metaData', $value) ? $value['metaData'] : ($value['bunnyStreamMetaData'] ?? null);
+        if (is_string($metaData)) {
+            $metaData = Json::decodeIfJson($metaData);
         }
 
-        if (isset($value['metaData']) && is_string($value['metaData'])) {
-            $value['metaData'] = Json::decodeIfJson($value['metaData']);
+        $attributes = new BunnyStreamFieldAttributes();
+        $attributes->videoId = BunnyStreamFieldAttributes::normalizeVideoId($videoId);
+        $attributes->metaData = is_array($metaData) ? $metaData : null;
+        $attributes->ownershipProof = is_string($value['ownershipProof'] ?? null) ? $value['ownershipProof'] : null;
+        $attributes->generation = is_string($value['generation'] ?? null) ? $value['generation'] : null;
+        return $attributes;
+    }
+
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): BunnyStreamFieldAttributes
+    {
+        // Craft calls this before replacing the element's value. Only the plugin
+        // may change the link; even a well-formed GUID can belong to another asset.
+        if ($element !== null && $this->handle !== null) {
+            try {
+                return $this->normalizeValue($element->getFieldValue($this->handle), $element);
+            } catch (InvalidFieldException) {
+                // The field isn't attached to this element's layout.
+            }
         }
 
-        return Craft::createObject([
-            'class' => BunnyStreamFieldAttributes::class,
-            ...$value,
-        ]);
+        return new BunnyStreamFieldAttributes();
     }
 
     public function serializeValue(mixed $value, ?ElementInterface $element): ?array
@@ -101,8 +123,10 @@ class BunnyStreamField extends Field implements PreviewableFieldInterface
         }
 
         return [
-            'videoId' => $value->videoId,
-            'metaData' => $value->metaData ? Json::encode($value->metaData) : null,
+            'videoId' => BunnyStreamFieldAttributes::normalizeVideoId($value->videoId),
+            'metaData' => $value->metaData !== null ? Json::encode($value->metaData) : null,
+            'ownershipProof' => $value->ownershipProof,
+            'generation' => $value->generation,
         ];
     }
 

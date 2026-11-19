@@ -5,45 +5,49 @@ namespace Noo\CraftBunnyStream\helpers;
 use Craft;
 use craft\elements\Asset;
 use Noo\CraftBunnyStream\BunnyStream;
+use Noo\CraftBunnyStream\exceptions\BunnyException;
 use Noo\CraftBunnyStream\exceptions\MissingConfigurationException;
+use Noo\CraftBunnyStream\jobs\DeleteBunnyStreamVideoJob;
+use Noo\CraftBunnyStream\models\BunnyStreamFieldAttributes;
 use Noo\CraftBunnyStream\models\Settings;
-use RuntimeException;
+use Throwable;
 use ToshY\BunnyNet\BunnyHttpClient;
 use ToshY\BunnyNet\Enum\Endpoint;
+use ToshY\BunnyNet\Exception\Client\BunnyHttpClientResponseException;
 use ToshY\BunnyNet\Model\Api\Stream\ManageVideos\CreateVideo;
 use ToshY\BunnyNet\Model\Api\Stream\ManageVideos\DeleteVideo;
 use ToshY\BunnyNet\Model\Api\Stream\ManageVideos\FetchVideo;
 use ToshY\BunnyNet\Model\Api\Stream\ManageVideos\GetVideo;
 use ToshY\BunnyNet\Model\Api\Stream\ManageVideos\UploadVideo;
+use ToshY\BunnyNet\Model\ModelInterface;
 
 class BunnyStreamApiHelper
 {
     private static ?BunnyHttpClient $client = null;
+    private static ?BunnyHttpClient $uploadClient = null;
 
-    public static function getVideo(string $videoId): mixed
+    public static function getVideo(string $videoId): array
     {
-        $libraryId = self::getLibraryId();
+        $video = self::request(new GetVideo(libraryId: self::getLibraryId(), videoId: $videoId));
+        $guid = BunnyStreamFieldAttributes::normalizeVideoId($video['guid'] ?? null);
+        if ($guid === null || strcasecmp($guid, $videoId) !== 0) {
+            throw new BunnyException('Bunny Stream returned unexpected video metadata.');
+        }
 
-        return self::getClient()->request(
-            new GetVideo(libraryId: $libraryId, videoId: $videoId),
-        )->getContents();
+        return $video;
     }
 
     public static function deleteVideo(string $videoId): mixed
     {
-        $libraryId = self::getLibraryId();
-
-        return self::getClient()->request(
-            new DeleteVideo(libraryId: $libraryId, videoId: $videoId),
-        )->getContents();
+        return self::request(new DeleteVideo(libraryId: self::getLibraryId(), videoId: $videoId));
     }
 
-    public static function createVideo(Asset $asset): mixed
+    public static function createVideo(Asset $asset): array
     {
         $url = self::getFetchableAssetUrl($asset);
 
         if ($url !== null) {
-            return self::fetchVideoFromUrl($url);
+            return self::fetchVideoFromUrl($asset, $url);
         }
 
         return self::uploadVideoBinary($asset);
@@ -56,13 +60,13 @@ class BunnyStreamApiHelper
         }
 
         $url = $asset->getUrl();
-        return $url && str_starts_with($url, 'http') ? $url : null;
+        return $url && in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'], true) ? $url : null;
     }
 
-    private static function fetchVideoFromUrl(string $url): mixed
+    private static function fetchVideoFromUrl(Asset $asset, string $url): array
     {
         $settings = self::getSettings();
-        $libraryId = (int)$settings->bunnyStreamLibraryId;
+        $libraryId = self::getLibraryId();
 
         $query = ['thumbnailTime' => 0];
 
@@ -70,25 +74,29 @@ class BunnyStreamApiHelper
             $query['collectionId'] = $settings->bunnyStreamCollectionId;
         }
 
-        $result = self::getClient()->request(
-            new FetchVideo(
-                libraryId: $libraryId,
-                query: $query,
-                body: ['url' => $url],
-            ),
-        )->getContents();
+        $result = self::request(new FetchVideo(
+            libraryId: $libraryId,
+            query: $query,
+            body: ['url' => $url],
+        ));
 
-        if ($result['statusCode'] !== 200) {
-            throw new RuntimeException("Error Creating Bunny Stream Video - " . $result['message']);
+        $videoId = BunnyStreamFieldAttributes::normalizeVideoId($result['id'] ?? null);
+        if (($result['statusCode'] ?? null) !== 200 || $videoId === null) {
+            throw new BunnyException('Bunny Stream did not accept the video fetch.');
         }
 
-        return self::getVideo($result['id']);
+        try {
+            return self::getVideo($videoId);
+        } catch (Throwable $e) {
+            self::discardCreatedVideo($asset, $videoId);
+            throw $e;
+        }
     }
 
-    private static function uploadVideoBinary(Asset $asset): mixed
+    private static function uploadVideoBinary(Asset $asset): array
     {
         $settings = self::getSettings();
-        $libraryId = (int)$settings->bunnyStreamLibraryId;
+        $libraryId = self::getLibraryId();
 
         $createBody = [
             'title' => $asset->filename,
@@ -99,35 +107,37 @@ class BunnyStreamApiHelper
             $createBody['collectionId'] = $settings->bunnyStreamCollectionId;
         }
 
-        $created = self::getClient()->request(
-            new CreateVideo(
-                libraryId: $libraryId,
-                body: $createBody,
-            ),
-        )->getContents();
-
-        $videoId = $created['guid'] ?? null;
-        if (!$videoId) {
-            throw new RuntimeException("Error Creating Bunny Stream Video - missing guid in response");
+        $created = self::request(new CreateVideo(libraryId: $libraryId, body: $createBody));
+        $videoId = BunnyStreamFieldAttributes::normalizeVideoId($created['guid'] ?? null);
+        if ($videoId === null) {
+            throw new BunnyException('Bunny Stream did not return a video GUID.');
         }
-
-        $stream = $asset->getStream();
 
         try {
-            self::getClient()->request(
-                new UploadVideo(
-                    libraryId: $libraryId,
-                    videoId: $videoId,
-                    body: $stream,
-                ),
-            )->getContents();
-        } finally {
-            if (is_resource($stream)) {
-                fclose($stream);
+            $stream = $asset->getStream();
+            try {
+                self::request(new UploadVideo(libraryId: $libraryId, videoId: $videoId, body: $stream));
+            } finally {
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
             }
+            return self::getVideo($videoId);
+        } catch (Throwable $e) {
+            self::discardCreatedVideo($asset, $videoId);
+            throw $e;
         }
+    }
 
-        return self::getVideo($videoId);
+    /** Compensate only for a GUID returned by Bunny for this creation. */
+    public static function discardCreatedVideo(Asset $asset, string $videoId): void
+    {
+        try {
+            self::deleteVideo($videoId);
+        } catch (Throwable) {
+            Craft::warning("Queuing cleanup of incomplete Bunny Stream video $videoId.", __METHOD__);
+            DeleteBunnyStreamVideoJob::forCreatedVideo($asset, $videoId)->schedule();
+        }
     }
 
     private static function getSettings(): Settings
@@ -135,21 +145,38 @@ class BunnyStreamApiHelper
         return BunnyStream::getInstance()->getSettings();
     }
 
-    private static function getLibraryId(): int
+    public static function getLibraryId(): int
     {
         $libraryId = self::getSettings()->bunnyStreamLibraryId;
 
-        if (!$libraryId) {
+        if (!$libraryId || !ctype_digit($libraryId) || (int)$libraryId < 1) {
             throw new MissingConfigurationException('No Bunny Stream Library ID set');
         }
 
         return (int)$libraryId;
     }
 
-    private static function getClient(): BunnyHttpClient
+    private static function request(ModelInterface $operation): mixed
     {
-        if (self::$client !== null) {
-            return self::$client;
+        $client = self::getClient($operation instanceof UploadVideo);
+        try {
+            return $client->request($operation)->getContents();
+        } catch (BunnyHttpClientResponseException $e) {
+            if ($operation instanceof DeleteVideo && $e->getCode() === 404) {
+                return null;
+            }
+            // The SDK puts the remote response body in the exception message.
+            throw new BunnyException('Bunny Stream request failed (HTTP ' . $e->getCode() . ').', $e->getCode());
+        } catch (Throwable) {
+            throw new BunnyException('Bunny Stream request failed.');
+        }
+    }
+
+    private static function getClient(bool $upload): BunnyHttpClient
+    {
+        $client = $upload ? self::$uploadClient : self::$client;
+        if ($client !== null) {
+            return $client;
         }
 
         $settings = self::getSettings();
@@ -158,12 +185,15 @@ class BunnyStreamApiHelper
             throw new MissingConfigurationException('No Bunny Stream access key or library ID');
         }
 
-        self::$client = new BunnyHttpClient(
-            client: Craft::createGuzzleClient(),
+        $client = new BunnyHttpClient(
+            client: Craft::createGuzzleClient(['connect_timeout' => 5, 'timeout' => $upload ? 3600 : 30]),
             apiKey: $settings->bunnyStreamAccessKey,
             baseUrl: Endpoint::STREAM,
         );
 
-        return self::$client;
+        if ($upload) {
+            return self::$uploadClient = $client;
+        }
+        return self::$client = $client;
     }
 }

@@ -60,7 +60,7 @@
         "check": [
             "@composer --no-plugins validate --strict",
             "@composer --no-plugins audit --locked",
-            "@test",
+            "@test --fail-on-skipped",
             "@phpstan",
             "@check-cs"
         ]
