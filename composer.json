@@ -27,12 +27,13 @@
     },
     "require-dev": {
         "craftcms/ecs": "dev-main",
-        "pestphp/pest": "^4.0",
+        "pestphp/pest": "^3.8 || ^4.0",
         "phpstan/phpstan": "^2.1",
+        "putyourlightson/craft-blitz": "^5.0",
         "roave/security-advisories": "dev-latest"
     },
     "suggest": {
-        "putyourlightson/craft-blitz": "Skips caching pages with still-processing videos and refreshes caches once Bunny finishes encoding."
+        "putyourlightson/craft-blitz": "Allows templates to opt out of caching while videos process, and refreshes affected pages when encoding finishes."
     },
     "autoload": {
         "psr-4": {
@@ -55,13 +56,17 @@
         "check-cs": "ecs check --ansi",
         "fix-cs": "ecs check --ansi --fix",
         "phpstan": "phpstan --memory-limit=1G",
-        "test": "pest"
+        "test": "pest",
+        "check": [
+            "@composer --no-plugins validate --strict",
+            "@composer --no-plugins audit --locked",
+            "@test",
+            "@phpstan",
+            "@check-cs"
+        ]
     },
     "config": {
         "sort-packages": true,
-        "platform": {
-            "php": "8.3"
-        },
         "allow-plugins": {
             "yiisoft/yii2-composer": true,
             "craftcms/plugin-installer": true,
