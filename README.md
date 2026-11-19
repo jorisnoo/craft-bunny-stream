@@ -56,17 +56,21 @@ Generate a dedicated secret (for example, with `php -r "echo bin2hex(random_byte
 https://your-site.tld/bunnystream/webhook?token=YOUR_URL_ENCODED_TOKEN
 ```
 
-Requests without the configured token are rejected before their payload is processed. The plugin uses the `VideoGuid` in an authenticated payload to find the matching asset and refresh its metadata.
+Requests without the configured token are rejected before their payload is processed. For a matching asset, the webhook queues a metadata refresh; Bunny API requests and optional Blitz refreshes run in the worker. Keep a Craft queue runner active.
 
 ## Setup
 
 1. Create a Bunny Stream field and add it to the field layout of any asset volume that holds video assets. Only one Bunny Stream field per layout is allowed, and the field cannot be added to non-asset layouts.
-2. Upload a video asset to that volume. The plugin queues creation of the Bunny Stream video and stores its `videoId` and metadata on the asset when the job runs.
-3. A queue job (`RefreshBunnyStreamMetadataJob`) polls Bunny Stream with exponential backoff until the video reaches a terminal status (`Finished`, `Error`, or `UploadFailed`).
+2. Upload a video asset to that volume. After the save commits, the plugin queues creation of the Bunny Stream video and stores its ID and metadata on the asset. Other volumes aren't uploaded. Bunny IDs and metadata are managed by the plugin; values submitted from a form are ignored.
+3. A queue job polls with exponential backoff until the video reaches `Finished`, `Error`, or `UploadFailed`. After 20 fast polls, it continues hourly for up to another day. Configure the authenticated webhook as well so late status updates aren't missed; `sync/metadata` can reconcile an asset after polling ends.
 
 In production, the plugin asks Bunny Stream to fetch the video over HTTP from the asset's public URL. In `dev` environments, or when an asset has no public URL, the file is uploaded as a binary stream instead.
 
-Replacing or deleting an asset deletes the corresponding Bunny Stream video.
+Replacement queues removal of the previous video and creation of a new one. Deletion does not require re-saving the deleted asset; videos for restorable, file-retaining soft deletions are preserved.
+
+Only a video created by this plugin for the same asset and library can be automatically removed. Existing links from older releases remain playable and continue receiving metadata, but the plugin cannot prove who originally created them. After replacing or deleting an older asset, verify the old video's ownership and remaining uses in the library before removing it manually.
+
+Ownership is bound to the asset, library and Craft security key. Rotating that key also invalidates existing deletion proofs; treat those links like legacy links when cleaning up the library.
 
 ## Twig API
 
@@ -91,14 +95,26 @@ A behavior is attached to all `craft\elements\Asset` elements:
 | `getBunnyStreamVideoId()` | The Bunny Stream `guid` |
 | `getBunnyStreamStatus()` | A `VideoStatus` enum case |
 | `getBunnyStreamData()` | The full metadata array from Bunny Stream |
-| `getBunnyStreamHlsUrl()` | HLS playlist URL on the configured CDN hostname |
-| `getBunnyStreamDirectUrl()` | The `player.mediadelivery.net` embed URL |
-| `getBunnyStreamEmbedUrl(params)` | Embed URL with query params merged in |
-| `getBunnyStreamEmbed(params)` | Responsive `<iframe>` embed HTML |
-| `getBunnyStreamThumbnailUrl(relative)` | Thumbnail URL (or path-only when `relative` is true) |
+| `getBunnyStreamHlsUrl()` | HLS playlist URL on the configured CDN hostname, or `null` without a video |
+| `getBunnyStreamDirectUrl()` | The `player.mediadelivery.net` embed URL, or `null` without a video |
+| `getBunnyStreamEmbedUrl(params)` | Embed URL with query parameters, or `null` without a video |
+| `getBunnyStreamEmbed(params)` | Responsive `<iframe>` HTML when a video is linked |
+| `getBunnyStreamThumbnailUrl(relative)` | Thumbnail URL (or path-only when `relative` is true), or `null` without a thumbnail |
+| `getBunnyStreamThumbnailBlurhash()` | Placeholder blurhash from Bunny metadata, or `null` |
+| `preventBlitzCachingWhileProcessing()` | Disables Blitz caching for this response if the asset is still processing |
 | `getBunnyStreamAspectRatio()` | Width / height as a float, or `null` |
 
 The default embed query string is `autoplay=false&preload=true&responsive=true`. Anything passed to `getBunnyStreamEmbedUrl()` or `getBunnyStreamEmbed()` is merged on top.
+
+### Optional Blitz integration
+
+Call the helper on pages that display a temporary processing message:
+
+```twig
+{% do asset.preventBlitzCachingWhileProcessing() %}
+```
+
+Without that call the plugin does not disable page caching. With Blitz installed, a terminal encoding update refreshes pages that reference the asset, including through Matrix entries.
 
 ### Control panel
 
@@ -121,9 +137,11 @@ php craft bunny-stream/sync/metadata
 php craft bunny-stream/sync/metadata --bootstrap
 ```
 
+The command exits nonzero if any asset fails. After upgrading a legacy installation, run Craft's migrations to convert the old field keys, then run `php craft bunny-stream/sync/metadata` to refresh existing linked videos. Only use `--bootstrap` if unlinked videos should be uploaded too.
+
 ## Logging
 
-The plugin writes to `storage/logs/bunny-stream-YYYY-MM-DD.log` under the `bunny-stream` log category, keeping 30 days of rotated logs.
+Plugin messages go to `storage/logs/bunny-stream.log`. Yii rotates it at 10 MiB and retains up to 30 rotated files; retention is based on size, not days.
 
 ## License
 

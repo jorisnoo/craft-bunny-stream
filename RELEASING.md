@@ -11,10 +11,14 @@ Release from `main` using an explicit version without a `v` prefix. `CHANGELOG.m
 Configured release checks:
 
 ```sh
-composer test
+composer check
 ```
 
 Install the project’s normal dependencies first. The helper runs these checks when publishing; dry-run prints them without executing them. Run any additional checks needed for the changed behavior before committing.
+
+`composer check` validates the manifest, audits resolved dependencies, runs Pest, and checks PHPStan and ECS. CI exercises patched PHP 8.2 with PostgreSQL and PHP 8.5 with MySQL on pull requests and pushes. Require the aggregate `Package checks` job on `main`.
+
+For the migration integration test, set `TEST_DB_DSN`, `TEST_DB_USER`, and `TEST_DB_PASSWORD` for a **disposable test database** before running the checks or publishing. CI supplies its own isolated databases. Do not use a project database or production credentials.
 
 ## Release
 
